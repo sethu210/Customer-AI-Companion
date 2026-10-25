@@ -51,3 +51,8 @@ uv run pytest                      # unit tests
 ```
 
 Data backend: `CUSTOMER_DATA_BACKEND` in `.env` (`databricks` or `mock`).
+
+## License
+
+Apache License 2.0, see [`LICENSE`](LICENSE). The Neuro SAN starter networks and tools keep their own copyright
+headers (Cognizant, also Apache 2.0).
