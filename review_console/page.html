@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review queue</title>
+<style>
+/* Layout: queue list on the left, the selected item and its decision form on the right; stacks on phones. */
+:root {
+  --paper: #f4f6f5; --surface: #ffffff; --ink: #17212a; --muted: #5a6670; --line: #d5ddda;
+  --accent: #0d6b5f; --accent-ink: #ffffff; --accent-soft: #e0efeb;
+  --warn: #8f4f06; --warn-soft: #f7ead8; --bad: #962e2e; --bad-soft: #f6e2e0; --good: #1c6a33; --good-soft: #e1f0e4;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --paper: #11171b; --surface: #182026; --ink: #e3eae8; --muted: #98a6ad; --line: #2b3840;
+    --accent: #5ac2b3; --accent-ink: #0d1a17; --accent-soft: #163330;
+    --warn: #e2a052; --warn-soft: #382916; --bad: #ea8e85; --bad-soft: #3a2120; --good: #77cd8e; --good-soft: #193221;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 var(--sans); }
+header { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; align-items: center; justify-content: space-between;
+         padding: 1rem max(16px, 2vw); border-bottom: 1px solid var(--line); background: var(--surface); }
+h1 { font-size: 1.15rem; margin: 0; }
+h2 { font-size: 1.05rem; margin: 0; }
+h3 { font-size: .8rem; margin: 0; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+.controls { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+label { display: grid; gap: .25rem; font-size: .85rem; color: var(--muted); }
+input, textarea { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+                  border-radius: 5px; padding: .45rem .6rem; width: 100%; }
+textarea { min-height: 4.5rem; resize: vertical; }
+button { font: inherit; border-radius: 5px; padding: .45rem .9rem; border: 1px solid var(--line); cursor: pointer;
+         background: var(--surface); color: var(--ink); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button.danger { color: var(--bad); border-color: var(--bad); }
+button:focus-visible, input:focus-visible, textarea:focus-visible, .row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+main { display: grid; grid-template-columns: minmax(18rem, 26rem) 1fr; gap: 1rem; padding: 1rem max(16px, 2vw); }
+@media (max-width: 760px) { main { grid-template-columns: 1fr; } }
+.list { display: grid; gap: .5rem; align-content: start; }
+.row { text-align: left; display: grid; gap: .25rem; padding: .7rem .8rem; border: 1px solid var(--line);
+       border-radius: 6px; background: var(--surface); width: 100%; }
+.row[aria-current="true"] { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.row .top { display: flex; gap: .4rem; flex-wrap: wrap; align-items: baseline; }
+.row .sum { color: var(--muted); font-size: .88rem; overflow-wrap: anywhere; }
+.chip { font: 600 .7rem/1.6 var(--mono); text-transform: uppercase; letter-spacing: .04em; padding: 0 .4rem; border-radius: 3px; white-space: nowrap; }
+.t-action_review { background: var(--warn-soft); color: var(--warn); }
+.t-handoff, .t-customer_request { background: var(--accent-soft); color: var(--accent); }
+.s-open { background: var(--warn-soft); color: var(--warn); }
+.s-approved, .s-resolved { background: var(--good-soft); color: var(--good); }
+.s-rejected { background: var(--bad-soft); color: var(--bad); }
+.mono { font-family: var(--mono); font-size: .85rem; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 1.1rem 1.2rem; display: grid; gap: 1rem; align-content: start; min-width: 0; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: .3rem 1rem; margin: 0; }
+dt { color: var(--muted); } dd { margin: 0; overflow-wrap: anywhere; }
+.issues { display: grid; gap: .5rem; }
+.issue { border: 1px solid var(--line); border-radius: 5px; padding: .6rem .7rem; display: grid; gap: .25rem; }
+.forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
+form { display: grid; gap: .6rem; align-content: start; border-top: 1px solid var(--line); padding-top: .8rem; }
+.msg { padding: .6rem .8rem; border-radius: 5px; }
+.msg.ok { background: var(--good-soft); color: var(--good); }
+.msg.err { background: var(--bad-soft); color: var(--bad); }
+.empty { color: var(--muted); padding: 1rem 0; }
+pre { background: var(--paper); border: 1px solid var(--line); border-radius: 5px; padding: .7rem; overflow-x: auto; font: .8rem/1.45 var(--mono); max-height: 22rem; }
+.tabs { display: flex; gap: .4rem; }
+.tabs button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Review queue</h1>
+  <div class="controls">
+    <div class="tabs" role="group" aria-label="View">
+      <button id="tab-queue" aria-pressed="true">Queue</button>
+      <button id="tab-outbox" aria-pressed="false">Customer outbox</button>
+    </div>
+    <label style="flex-direction:row;display:flex;gap:.4rem;align-items:center;color:var(--ink)">
+      <input type="checkbox" id="show-all" style="width:auto"> Show decided
+    </label>
+    <label style="min-width:12rem">Your name (recorded on every decision)
+      <input id="reviewer" autocomplete="name" placeholder="e.g. Sam Patel">
+    </label>
+  </div>
+</header>
+<main>
+  <section class="list" id="list" aria-label="Items waiting for review"><p class="empty">Loading…</p></section>
+  <section class="panel" id="detail" aria-live="polite"><p class="empty">Select an item to review it.</p></section>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let selected = null, view = "queue";
+try { $("#reviewer").value = localStorage.getItem("reviewer") || ""; } catch (e) {}
+$("#reviewer").addEventListener("change", () => { try { localStorage.setItem("reviewer", $("#reviewer").value); } catch (e) {} });
+
+async function api(path, body) {
+  const res = await fetch(path, body ? {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)} : {});
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Request failed (${res.status})`);
+  return data;
+}
+
+function label(i) { return i.action ? `${i.action} · ${i.target_id}` : i.kind; }
+
+async function loadQueue() {
+  const items = await api(`/api/queue?all=${$("#show-all").checked}`);
+  const list = $("#list");
+  if (!items.length) { list.innerHTML = '<p class="empty">Nothing waiting for review.</p>'; return; }
+  list.innerHTML = items.map((i) => `
+    <button class="row" data-id="${esc(i.review_id)}" aria-current="${i.review_id === selected}">
+      <span class="top"><span class="chip t-${esc(i.type)}">${esc(i.type.replace("_", " "))}</span>
+        <span class="chip s-${esc(i.status)}">${esc(i.status)}</span><strong>${esc(label(i))}</strong></span>
+      <span class="sum">${esc(i.summary).slice(0, 160)}</span>
+      <span class="mono" style="color:var(--muted)">${esc(i.review_id)} · ${esc(i.created_at)}</span>
+    </button>`).join("");
+  list.querySelectorAll(".row").forEach((b) => b.addEventListener("click", () => show(b.dataset.id)));
+}
+
+function issuesHtml(c) {
+  if (!c) return "";
+  return `<h3>Support case ${esc(c.case_id)} · ${esc(c.summary.outcome)}</h3><div class="issues">` +
+    c.issues.map((i) => `<div class="issue"><div class="top"><span class="chip s-open">${esc(i.status)}</span>
+      <strong>${esc(i.domain)}</strong> <span class="mono">${esc(i.issue_id)}</span></div>
+      <div>${esc(i.summary)}</div>
+      ${i.findings.filter((f) => f.author === "agent").map((f) => `<div class="sum">Agent: ${esc(f.data.conclusion)}</div>`).join("")}
+      ${i.proposal ? `<div class="mono">Proposed: ${esc(i.proposal.action)} on ${esc(i.proposal.target_id)}</div>` : ""}
+    </div>`).join("") + "</div>";
+}
+
+async function show(id) {
+  selected = id;
+  document.querySelectorAll(".row").forEach((r) => r.setAttribute("aria-current", String(r.dataset.id === id)));
+  const d = await api(`/api/items/${encodeURIComponent(id)}`);
+  const open = d.status === "open";
+  const facts = [["Status", d.status], ["Kind", d.kind], ["Customer", d.customer_id || "not identified"],
+    ["Action", d.action], ["Target", d.target_id], ["Amount", d.amount != null ? `$${Number(d.amount).toFixed(2)}` : null],
+    ["Reference", d.reference], ["Created", d.created_at]].filter(([, v]) => v != null && v !== "");
+  let forms = "";
+  if (open && d.type === "action_review") {
+    forms = `<div class="forms">
+      <form id="f-approve"><h3>Approve and execute</h3>
+        <p class="sum">Re-checked against today's data before it runs. Your name is recorded.</p>
+        <label>Note (internal)<textarea id="approve-note"></textarea></label>
+        <button class="primary" type="submit">Approve and execute</button></form>
+      <form id="f-reject"><h3>Reject</h3>
+        <label>Reason (internal, required)<textarea id="reject-reason" required></textarea></label>
+        <label>Message to the customer (optional)<textarea id="reject-message"></textarea></label>
+        <button class="danger" type="submit">Reject</button></form></div>`;
+  } else if (open) {
+    forms = `<div class="forms"><form id="f-resolve"><h3>Mark as dealt with</h3>
+        <label>What was done (internal, required)<textarea id="resolve-note" required></textarea></label>
+        <label>Message to the customer (optional)<textarea id="resolve-message"></textarea></label>
+        <button class="primary" type="submit">Resolve</button></form></div>`;
+  }
+  $("#detail").innerHTML = `<div id="result"></div>
+    <div class="top" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:baseline">
+      <span class="chip t-${esc(d.type)}">${esc(d.type.replace("_", " "))}</span><h2>${esc(label(d))}</h2></div>
+    <p>${esc(d.summary)}</p>
+    <dl>${facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+    ${issuesHtml(d.case)}
+    ${d.packet ? `<h3>Hand-off packet</h3><pre>${esc(JSON.stringify(d.packet, null, 2))}</pre>` : ""}
+    ${forms}`;
+  const bind = (sel, fn) => { const f = $(sel); if (f) f.addEventListener("submit", (e) => { e.preventDefault(); act(fn); }); };
+  bind("#f-approve", () => api(`/api/items/${encodeURIComponent(id)}/approve`, {reviewer: reviewer(), note: $("#approve-note").value}));
+  bind("#f-reject", () => api(`/api/items/${encodeURIComponent(id)}/reject`, {reviewer: reviewer(), reason: $("#reject-reason").value, customer_message: $("#reject-message").value}));
+  bind("#f-resolve", () => api(`/api/items/${encodeURIComponent(id)}/resolve`, {reviewer: reviewer(), note: $("#resolve-note").value, customer_message: $("#resolve-message").value}));
+}
+
+function reviewer() {
+  const name = $("#reviewer").value.trim();
+  if (!name) { $("#reviewer").focus(); throw new Error("Enter your name first; it is recorded with the decision."); }
+  return name;
+}
+
+async function act(fn) {
+  const box = $("#result");
+  try {
+    const r = await fn();
+    const text = r.outcome === "executed" ? `Executed. Reference ${r.reference}${r.amount ? `, $${Number(r.amount).toFixed(2)}` : ""}. The customer notification is queued.`
+      : r.outcome === "not_possible" ? `Not executed: ${r.explanation} ${r.next_step}`
+      : r.outcome === "rejected" ? "Rejected. The customer notification is queued."
+      : r.outcome === "resolved" ? "Resolved." : `Outcome: ${r.outcome}`;
+    await loadQueue(); await show(selected);
+    $("#result").innerHTML = `<div class="msg ${r.outcome === "not_possible" || r.outcome === "executed_unverified" ? "err" : "ok"}">${esc(text)}</div>`;
+  } catch (e) { box.innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+}
+
+async function loadOutbox() {
+  const rows = await api("/api/outbox");
+  $("#list").innerHTML = rows.length ? rows.slice().reverse().map((r) => `<div class="row">
+      <span class="top"><span class="chip s-open">${esc(r.status)}</span><span class="mono">${esc(r.review_id)}</span></span>
+      <span>${esc(r.message)}</span><span class="mono" style="color:var(--muted)">${esc(r.customer_id)} · ${esc(r.at)}</span></div>`).join("")
+    : '<p class="empty">No customer notifications yet.</p>';
+  $("#detail").innerHTML = '<p class="empty">Notifications wait here until a channel gateway sends them.</p>';
+}
+
+function setView(v) {
+  view = v;
+  $("#tab-queue").setAttribute("aria-pressed", String(v === "queue"));
+  $("#tab-outbox").setAttribute("aria-pressed", String(v === "outbox"));
+  (v === "queue" ? loadQueue() : loadOutbox()).catch((e) => { $("#list").innerHTML = `<p class="msg err">${esc(e.message)}</p>`; });
+}
+$("#tab-queue").addEventListener("click", () => setView("queue"));
+$("#tab-outbox").addEventListener("click", () => setView("outbox"));
+$("#show-all").addEventListener("change", () => setView("queue"));
+setView("queue");
+</script>
+</body>
+</html>

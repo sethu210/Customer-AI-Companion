@@ -1,0 +1,28 @@
+id: S11
+title: Return label created 30 days ago but the parcel was never sent - not stuck on our side
+phase: stuck
+customers:
+  - id: CUST-S11
+    name: Isabella Nguyen
+    tier: standard
+    created_days_ago: 500
+    identities:
+      - {channel: web_session}
+    orders:
+      - placed_days_ago: 50
+        items:
+          - {key: chinos, title: Slim Chino Pants, category: pants, color: olive, size: "32", price: 58.00}
+        shipments:
+          - events: [[label_created, 49], [picked_up, 49], [in_transit, 48], [out_for_delivery, 45], [delivered, 45]]
+        returns:
+          - item: chinos
+            reason: wrong_size
+            label_created_days_ago: 30
+expected:
+  customer: CUST-S11
+  channel: web_session
+  question: "Where's my refund for the chinos?"
+  matching_items: [ITM-S11-1-1]
+  diagnosis: []
+  action: none
+  answer_mentions: [return label created 30 days ago, parcel never scanned by the carrier, refund starts once received, no false claim that something is stuck]

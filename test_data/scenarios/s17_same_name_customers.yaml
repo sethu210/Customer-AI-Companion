@@ -1,0 +1,44 @@
+id: S17
+title: Two customers named Alex Morgan, both with blue jackets - identity must come from the channel only
+phase: identity
+customers:
+  - id: CUST-S17A
+    name: Alex Morgan
+    tier: standard
+    created_days_ago: 300
+    identities:
+      - {channel: web_session}
+      - {channel: email}
+    orders:
+      - placed_days_ago: 5
+        items:
+          - {key: puffer, title: Classic Puffer Jacket, category: outerwear, color: blue, size: M, price: 129.00}
+        shipments:
+          - events: [[label_created, 4], [picked_up, 4], [in_transit, 3], [out_for_delivery, 2], [delivered, 2]]
+  - id: CUST-S17B
+    name: Alex Morgan
+    tier: gold
+    created_days_ago: 1200
+    identities:
+      - {channel: web_session}
+      - {channel: email}
+    orders:
+      - placed_days_ago: 18
+        items:
+          - {key: shell, title: Rain Shell Jacket, category: outerwear, color: blue, size: L, price: 99.00}
+        shipments:
+          - events: [[label_created, 17], [picked_up, 17], [in_transit, 16], [out_for_delivery, 14], [delivered, 14]]
+        returns:
+          - item: shell
+            reason: wrong_size
+            label_created_days_ago: 10
+            warehouse_scanned_days_ago: 3
+            refund: {status: pending, initiated_days_ago: 3}
+expected:
+  customer: CUST-S17A
+  channel: web_session
+  question: "Hi, it's Alex Morgan - where's my refund for the blue jacket?"
+  matching_items: [ITM-S17A-1-1]
+  diagnosis: []
+  action: none
+  answer_mentions: [no return exists for this account's blue jacket (delivered 2 days ago), never mentions CUST-S17B's refund]

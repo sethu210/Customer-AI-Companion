@@ -1,0 +1,14 @@
+# Generator settings. Same settings + same scenarios => byte-identical output.
+seed: 20261016
+# Every timestamp is expressed relative to this date. UC functions and the mock adapter
+# compare against config.reference_date, never the wall clock.
+reference_date: "2026-10-16"
+background_customers: 500
+currency: USD
+
+# Copied into the `config` table so data-side rules (stuck detection) and the policy engine agree.
+policy:
+  return_window_days: 30
+  stuck_refund_days: 5          # return scanned this long ago with no completed refund => stuck
+  stuck_shipment_days: 4        # no shipment movement for this long => stuck
+  auto_refund_max: 150.00       # refunds above this need human approval

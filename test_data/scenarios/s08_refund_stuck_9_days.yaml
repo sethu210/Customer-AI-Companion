@@ -1,0 +1,30 @@
+id: S08
+title: Return scanned 9 days ago but no refund was ever initiated
+phase: stuck
+customers:
+  - id: CUST-S08
+    name: Daniel Okafor
+    tier: silver
+    created_days_ago: 600
+    identities:
+      - {channel: web_session}
+      - {channel: email}
+    orders:
+      - placed_days_ago: 25
+        items:
+          - {key: shoes, title: Trail Running Shoes, category: footwear, color: orange, size: "10", price: 119.00}
+        shipments:
+          - events: [[label_created, 24], [picked_up, 24], [in_transit, 23], [out_for_delivery, 21], [delivered, 21]]
+        returns:
+          - item: shoes
+            reason: damaged
+            label_created_days_ago: 15
+            warehouse_scanned_days_ago: 9
+expected:
+  customer: CUST-S08
+  channel: web_session
+  question: "I sent back my running shoes ages ago, where is my money?"
+  matching_items: [ITM-S08-1-1]
+  diagnosis: [stuck_refund]
+  action: {type: initiate_refund, amount: 119.00, decision: ALLOW}
+  answer_mentions: [return received 9 days ago, refund was not started, refund now initiated]

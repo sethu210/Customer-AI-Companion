@@ -1,0 +1,39 @@
+id: S18
+title: One phone number linked to two household accounts - phone identity is ambiguous
+phase: identity
+customers:
+  - id: CUST-S18A
+    name: Robert Silva
+    tier: standard
+    created_days_ago: 900
+    identities:
+      - {channel: web_session}
+      - {channel: phone, identifier: "+1-299-555-0150"}
+    orders:
+      - placed_days_ago: 4
+        items:
+          - {key: chinos, title: Slim Chino Pants, category: pants, color: navy, size: "34", price: 62.00}
+        shipments:
+          - events: [[label_created, 3], [picked_up, 3], [in_transit, 2]]
+  - id: CUST-S18B
+    name: Carla Silva
+    tier: silver
+    created_days_ago: 700
+    identities:
+      - {channel: web_session}
+      - {channel: phone, identifier: "+1-299-555-0150"}
+    orders:
+      - placed_days_ago: 9
+        items:
+          - {key: sweater, title: Merino Crew Sweater, category: knitwear, color: grey, size: S, price: 74.00}
+        shipments:
+          - events: [[label_created, 8], [picked_up, 8], [in_transit, 7], [out_for_delivery, 6], [delivered, 6]]
+expected:
+  customer: CUST-S18A
+  channel: phone
+  identity_resolution: ambiguous
+  question: "Where's my order?"
+  matching_items: []
+  diagnosis: []
+  action: {type: any, decision: DENY, reason: identity_ambiguous}
+  answer_mentions: [cannot tell which account, sends a verification link or asks to log in, discloses no order details]

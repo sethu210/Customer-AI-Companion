@@ -1,0 +1,25 @@
+id: S07
+title: Customer asks about shoes they never ordered
+phase: ambiguity
+customers:
+  - id: CUST-S07
+    name: Ethan Walsh
+    tier: standard
+    created_days_ago: 200
+    identities:
+      - {channel: web_session}
+    orders:
+      - placed_days_ago: 15
+        items:
+          - {key: shirt, title: Oxford Shirt, category: shirts, color: white, size: L, price: 48.00}
+          - {key: belt, title: Leather Belt, category: accessories, color: black, size: L, price: 35.00}
+        shipments:
+          - events: [[label_created, 14], [picked_up, 14], [in_transit, 13], [out_for_delivery, 11], [delivered, 11]]
+expected:
+  customer: CUST-S07
+  channel: web_session
+  question: "Where are my running shoes?"
+  matching_items: []
+  diagnosis: []
+  action: none
+  answer_mentions: [no running shoes on this account, lists recent order (shirt and belt), asks if ordered on another account or as a guest]

@@ -1,0 +1,24 @@
+id: S14
+title: Return requested 46 days after delivery - outside the 30-day window
+phase: policy
+customers:
+  - id: CUST-S14
+    name: Liam O'Connor
+    tier: standard
+    created_days_ago: 400
+    identities:
+      - {channel: web_session}
+    orders:
+      - placed_days_ago: 50
+        items:
+          - {key: rain, title: Rain Shell Jacket, category: outerwear, color: grey, size: L, price: 95.00}
+        shipments:
+          - events: [[label_created, 49], [picked_up, 49], [in_transit, 48], [out_for_delivery, 46], [delivered, 46]]
+expected:
+  customer: CUST-S14
+  channel: web_session
+  question: "I'd like to return my grey rain jacket."
+  matching_items: [ITM-S14-1-1]
+  diagnosis: []
+  action: {type: create_return, decision: DENY}
+  answer_mentions: [delivered 46 days ago, 30-day window has passed, offers handoff to a person for an exception]

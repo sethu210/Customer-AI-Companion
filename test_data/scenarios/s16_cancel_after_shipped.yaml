@@ -1,0 +1,25 @@
+id: S16
+title: Customer wants to cancel an order that has already shipped
+phase: policy
+customers:
+  - id: CUST-S16
+    name: Ava Thompson
+    tier: silver
+    created_days_ago: 250
+    identities:
+      - {channel: web_session}
+    orders:
+      - placed_days_ago: 2
+        items:
+          - {key: tote, title: Canvas Tote Bag, category: accessories, color: natural, price: 32.00}
+          - {key: beanie, title: Thermal Beanie, category: accessories, color: red, price: 20.00}
+        shipments:
+          - events: [[label_created, 1], [picked_up, 1], [in_transit, 0]]
+expected:
+  customer: CUST-S16
+  channel: web_session
+  question: "Please cancel my order."
+  matching_items: [ITM-S16-1-1, ITM-S16-1-2]
+  diagnosis: []
+  action: {type: cancel_order, decision: DENY}
+  answer_mentions: [already shipped, cannot cancel, can return free once delivered]

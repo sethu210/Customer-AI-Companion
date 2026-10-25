@@ -1,0 +1,33 @@
+id: S13
+title: Stuck refund on a high-value overcoat exceeds the auto-refund limit
+phase: policy
+customers:
+  - id: CUST-S13
+    name: Priya Raman
+    tier: platinum
+    created_days_ago: 1500
+    loyalty_points: 8800
+    identities:
+      - {channel: web_session}
+      - {channel: email}
+    orders:
+      - placed_days_ago: 28
+        items:
+          - {key: coat, title: Wool Overcoat, category: outerwear, color: camel, size: M, price: 289.00}
+        shipments:
+          - events: [[label_created, 27], [picked_up, 27], [in_transit, 26], [out_for_delivery, 24], [delivered, 24]]
+        returns:
+          - item: coat
+            reason: not_as_described
+            label_created_days_ago: 18
+            warehouse_scanned_days_ago: 11
+            status: inspected
+            refund: {status: processing, initiated_days_ago: 10}
+expected:
+  customer: CUST-S13
+  channel: web_session
+  question: "What's happening with the refund on my overcoat?"
+  matching_items: [ITM-S13-1-1]
+  diagnosis: [stuck_refund]
+  action: {type: retrigger_refund, amount: 289.00, decision: NEEDS_APPROVAL}
+  answer_mentions: [refund processing for 10 days, sent for review, no action needed from customer]

@@ -1,0 +1,31 @@
+id: S12
+title: Low-value refund pending for 8 days after warehouse scan - safe to retrigger automatically
+phase: policy
+customers:
+  - id: CUST-S12
+    name: Noah Patel
+    tier: standard
+    created_days_ago: 650
+    identities:
+      - {channel: web_session}
+      - {channel: email}
+    orders:
+      - placed_days_ago: 24
+        items:
+          - {key: belt, title: Leather Belt, category: accessories, color: brown, size: M, price: 36.00}
+        shipments:
+          - events: [[label_created, 23], [picked_up, 23], [in_transit, 22], [out_for_delivery, 20], [delivered, 20]]
+        returns:
+          - item: belt
+            reason: not_as_described
+            label_created_days_ago: 14
+            warehouse_scanned_days_ago: 8
+            refund: {status: pending, initiated_days_ago: 8}
+expected:
+  customer: CUST-S12
+  channel: email
+  question: "Still waiting on my belt refund."
+  matching_items: [ITM-S12-1-1]
+  diagnosis: [stuck_refund]
+  action: {type: retrigger_refund, amount: 36.00, decision: ALLOW}
+  answer_mentions: [refund was stuck, retriggered now, "$36.00", expected timeline]

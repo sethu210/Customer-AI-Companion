@@ -1,0 +1,44 @@
+[project]
+name = "neurosan"
+version = "0.1.0"
+description = "Everly from ACME Retail: the customer's AI companion (multi-agent support, Resolution Guardian, Personal Stylist Mode) on Neuro SAN"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "langchain-openrouter>=0.2.9",
+    "neuro-san-studio>=0.4.2",
+]
+
+[project.scripts]
+neurosan = "neurosan:main"
+
+[tool.uv]
+# Install the observability group (Phoenix tracing) with a plain `uv sync`, so it is not removed by accident.
+default-groups = ["dev", "observability", "demo"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+demo = [
+    "imageio-ffmpeg>=0.6.0",
+    "playwright>=1.64.0",
+]
+dev = [
+    "faker>=40.43.0",
+    "pyarrow>=26.0.0",
+    "pytest>=9.1.1",
+]
+observability = [
+    "arize-phoenix==14.6.0",
+    "arize-phoenix-otel==0.16.1",
+    "graphql-core>=3.2,<3.3",
+    "openinference-instrumentation-langchain==0.1.64",
+    "openinference-instrumentation-mcp==2.0.1",
+    "openinference-instrumentation-openai==0.1.47",
+]

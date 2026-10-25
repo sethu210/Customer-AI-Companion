@@ -1,0 +1,105 @@
+{
+  "seed": 20261016,
+  "reference_date": "2026-10-16",
+  "background_customers": 500,
+  "scenarios": [
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S09",
+    "S10",
+    "S11",
+    "S12",
+    "S13",
+    "S14",
+    "S15",
+    "S16",
+    "S17",
+    "S18",
+    "S19",
+    "S20"
+  ],
+  "tables": {
+    "customers": {
+      "rows": 523,
+      "parquet_sha256": "d6220c3416e28b30b2d9c8f26935e535ba015e845e693045e31879b478091fcd"
+    },
+    "channel_identities": {
+      "rows": 1329,
+      "parquet_sha256": "e1a9b5c2890ea8d2a46620908b270ef961efe7defc7cc8feb1923ef46de63f7d"
+    },
+    "orders": {
+      "rows": 1485,
+      "parquet_sha256": "8101afa6d66065986acee97a25a7986de44c7b288dff7558274a5940dfb3b540"
+    },
+    "shipments": {
+      "rows": 1454,
+      "parquet_sha256": "f13631a5e8d48bb2e058dc441d186a56e8660ea6ff41d5f781cdd5df80cb2e41"
+    },
+    "order_items": {
+      "rows": 2915,
+      "parquet_sha256": "c18382491e8412893092a4107999a511c9b7e5467b6ab3d185a6439a33c54072"
+    },
+    "shipment_events": {
+      "rows": 7216,
+      "parquet_sha256": "f942d354588a006702dbd2694e753479115f9de6e0e052563028f19e52e82d1e"
+    },
+    "returns": {
+      "rows": 236,
+      "parquet_sha256": "d32adbb23644b5f32acba857dba427176a8a35c482bb386a65dc821aa3fc26f6"
+    },
+    "refunds": {
+      "rows": 232,
+      "parquet_sha256": "35c3d476895ec624db28354a62d56cebfa8f35becae0425af134e2388d07cc00"
+    },
+    "payments": {
+      "rows": 1485,
+      "parquet_sha256": "2596d6e947dfbda1f3f6be01897263fff2caa919c4c9b26e0884f8fcce94b9c8"
+    },
+    "loyalty": {
+      "rows": 523,
+      "parquet_sha256": "00bdf647f0a4aa300d9195e432877a9386888aea727c3f24ca02f220973f9fbd"
+    },
+    "support_contacts": {
+      "rows": 2,
+      "parquet_sha256": "66ff8461a7cdbd22c14fd0102c985aacb8ee6f4a6aa314116395dc0e3ace5eb5"
+    },
+    "config": {
+      "rows": 6,
+      "parquet_sha256": "b67d505c7315e8fd5ed410114e569d38f1feadabef0c4c258b4e05cd92076ece"
+    },
+    "products": {
+      "rows": 46,
+      "parquet_sha256": "cc970092a3859b0142c4ee52de23cff8c664d779740d11e46e6f232bdb48d463"
+    },
+    "product_variants": {
+      "rows": 358,
+      "parquet_sha256": "f2abb666c67c59c75ae5011eb5dd6187e287787a13f83b98075345151bebb84f"
+    },
+    "product_relations": {
+      "rows": 84,
+      "parquet_sha256": "2f9947e3ee811e28cf1560665543ecd23bdac6ec5852ef393734fddce7fb2989"
+    },
+    "product_launches": {
+      "rows": 6,
+      "parquet_sha256": "5e69b36407b8c4da4e1ac49af1852c974ef91152552f4e493f2c1f476a6fa09b"
+    },
+    "product_styles": {
+      "rows": 92,
+      "parquet_sha256": "cbd539f311004b78deb6315b697506643db66f6c970a6b4fff06e397cc930ed2"
+    },
+    "colour_families": {
+      "rows": 25,
+      "parquet_sha256": "7dc11ba0214f0b71164081f55aa318df691d25e6c98d72c520b6c9d0232fb3df"
+    },
+    "colour_harmony": {
+      "rows": 21,
+      "parquet_sha256": "38bca7fdb5a6fc2acbb3d23cb037e0d550a9290b52865ecd1c5e4b434bd8c434"
+    }
+  }
+}

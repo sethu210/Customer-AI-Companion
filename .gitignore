@@ -1,0 +1,32 @@
+# secrets and local settings
+.env
+.claude/
+
+# Python and tools
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# generated: evaluation runs, demo stores, recordings, logs, local databases
+runtime/
+logs/
+*.db
+sly1.json
+
+# demo video and voice-over tooling: kept locally, not part of the repository
+demo_console/recorder.py
+demo_console/render.py
+demo_console/narration.py
+demo_console/storyboard.py
+demo_console/tts_windows.ps1
+demo/reel*.yaml
+demo/timing.yaml
+demo/narration/
+scripts/record_demo.ps1
+tests/test_demo_video.py
+docs/demo_video.md
+
+# working notes with local paths and workspace details
+docs/STATUS.md
+docs/demo_runbook.md

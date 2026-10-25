@@ -1,0 +1,38 @@
+# Demo console settings (demo_console). Recording is switched on per run: scripts\demo.ps1 -Record.
+# Everly is the app and the customer's companion (one name for every customer), made by ACME Retail, the store.
+brand: "Everly"
+tagline: "Your AI Companion, Always by Your Side"
+retailer: "ACME Retail"
+
+# Customers who have Personal Stylist Mode switched on when the demo starts (recorded as their consent, channel
+# "demo set-up"), so a launch in the Launches tab finds someone. Two per launch whose only score of 80 or more is that
+# launch, except the field jacket: its matches also match the scarf, so within a week of the scarf the weekly limit
+# holds them back. The last three score below 80 everywhere (B0009: 76 for the trail fleece). Kept small: on
+# Databricks every candidate costs three reads per launch.
+stylist_mode_on:
+  - CUST-B0196   # cashmere scarf 92 (navy wool overcoat); also scenario N1
+  - CUST-B0477   # cashmere scarf 91
+  - CUST-B0165   # waxed field jacket 82 (and the scarf)
+  - CUST-B0400   # waxed field jacket 82 (and the scarf)
+  - CUST-B0265   # suede loafers 95
+  - CUST-B0419   # suede loafers 94
+  - CUST-B0490   # linen overshirt 82
+  - CUST-B0096   # linen overshirt 81
+  - CUST-B0499   # merino polo 88
+  - CUST-B0346   # merino polo 87
+  - CUST-B0195   # trail fleece jacket 86
+  - CUST-B0109   # trail fleece jacket 86
+  - CUST-B0009   # below 80 everywhere
+  - CUST-B0014   # below 80 everywhere
+  - CUST-B0015   # below 80 everywhere
+
+# Website sign-in is the only channel offered. "Not signed in" (an anonymous visitor) stays off unless set to true.
+not_signed_in: false
+
+# The Neuro SAN server the console talks to.
+neuro_san_url: "http://localhost:8080"
+turn_timeout_s: 960
+
+# Orbit's clock: every this many seconds the console sends Orbit a tick; Orbit runs the Guardian's follow-up checks
+# and releases held stylist picks (docs/orbit_tick_plan.md). The Inbox tab's clock and event buttons tick at once.
+orbit_tick_every_s: 60

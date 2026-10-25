@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support Demo Console</title>
+<!--
+  PROTOTYPE for review only. Self-contained: no server, no network calls.
+  The customer list and identities are real test data (mock = Databricks). The conversation replayed for
+  Daniel Okafor is the recorded M2 run (runtime/eval/ui-rest-mock/multi_streams/M2.jsonl), trimmed for display.
+  See docs/ui_improvement_plan.md for how the real app would work.
+-->
+<style>
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --panel-2: #f1f3f6; --line: #dfe3e8; --text: #1b2430; --muted: #5d6b7a;
+  --accent: #2f6fdf; --accent-text: #ffffff; --good: #1f8a4c; --warn: #b26a00; --bad: #c0392b; --info: #2f6fdf;
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 4px 12px rgba(16,24,40,.06);
+  --a-orch: #2f6fdf; --a-intake: #7b4fd6; --a-order: #0f8f8f; --a-returns: #d9622b; --a-pay: #b8860b;
+  --a-loyal: #c2417a; --a-policy: #3d8b37; --a-cust: #5d6b7a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141a; --panel: #161d25; --panel-2: #1d2630; --line: #2b3643; --text: #e6ebf1; --muted: #9aa8b7;
+    --accent: #5b8ff0; --good: #43b97a; --warn: #e0a040; --bad: #e86b5c; --info: #5b8ff0;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.3);
+    --a-orch: #5b8ff0; --a-intake: #a07ff0; --a-order: #33b8b8; --a-returns: #f08550; --a-pay: #d9ad3c;
+    --a-loyal: #e06aa0; --a-policy: #63b85c; --a-cust: #9aa8b7;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141a; --panel: #161d25; --panel-2: #1d2630; --line: #2b3643; --text: #e6ebf1; --muted: #9aa8b7;
+  --accent: #5b8ff0; --good: #43b97a; --warn: #e0a040; --bad: #e86b5c; --info: #5b8ff0;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.3);
+  --a-orch: #5b8ff0; --a-intake: #a07ff0; --a-order: #33b8b8; --a-returns: #f08550; --a-pay: #d9ad3c;
+  --a-loyal: #e06aa0; --a-policy: #63b85c; --a-cust: #9aa8b7;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+button, input, select { font: inherit; color: inherit; }
+.mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 12px; }
+.muted { color: var(--muted); }
+.banner { background: var(--panel-2); border-bottom: 1px solid var(--line); padding: 6px 16px; font-size: 12px; color: var(--muted);
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.banner b { color: var(--text); }
+.banner .speed button { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 1px 8px; cursor: pointer; }
+.banner .speed button.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+header.top { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.brand { font-weight: 650; font-size: 16px; }
+.brand small { font-weight: 400; color: var(--muted); margin-left: 6px; }
+.spacer { flex: 1; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 12px; background: var(--panel); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); display: inline-block; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.btn.primary:disabled { opacity: .5; cursor: default; }
+.switch { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; user-select: none; }
+.switch input { accent-color: var(--accent); }
+
+/* ---------- sign-in screen ---------- */
+#login { max-width: 1100px; margin: 0 auto; padding: 24px 16px 40px; }
+#login h1 { font-size: 22px; margin: 0 0 4px; }
+.login-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; margin-top: 16px; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.toolbar input { flex: 1; min-width: 180px; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 8px 10px; }
+.chip { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 4px 12px; cursor: pointer; font-size: 13px; }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; cursor: pointer; box-shadow: var(--shadow); text-align: left; }
+.card:hover { border-color: var(--accent); }
+.card.sel { outline: 2px solid var(--accent); border-color: var(--accent); }
+.card .name { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+.card .scn { margin-top: 6px; font-size: 12.5px; }
+.tier { font-size: 11px; border-radius: 4px; padding: 0 6px; background: var(--panel-2); color: var(--muted); font-weight: 500; text-transform: capitalize; }
+.cls { font-size: 11px; border-radius: 4px; padding: 1px 6px; font-weight: 600; }
+.cls.info { background: color-mix(in srgb, var(--info) 15%, transparent); color: var(--info); }
+.cls.action { background: color-mix(in srgb, var(--good) 15%, transparent); color: var(--good); }
+.cls.deny { background: color-mix(in srgb, var(--bad) 13%, transparent); color: var(--bad); }
+.cls.escalate { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
+.cls.identity { background: var(--panel-2); color: var(--muted); }
+.cls.bg { background: var(--panel-2); color: var(--muted); }
+.signin { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); position: sticky; top: 16px; align-self: start; }
+.signin h2 { font-size: 16px; margin: 0 0 2px; }
+.opt { display: flex; gap: 10px; border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-top: 8px; cursor: pointer; }
+.opt:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.opt input { margin-top: 3px; accent-color: var(--accent); }
+.opt .t { font-weight: 600; }
+.opt .d { font-size: 12px; color: var(--muted); }
+.gw { margin-top: 12px; background: var(--panel-2); border-radius: 8px; padding: 8px 10px; }
+.gw .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+/* ---------- console ---------- */
+#console { display: none; height: calc(100vh - 82px); }
+.layout { display: grid; grid-template-columns: minmax(340px, 0.9fr) 1.1fr; gap: 12px; padding: 12px; height: 100%; }
+.layout.hide-agents { grid-template-columns: minmax(340px, 720px); justify-content: center; }
+.layout.hide-agents .agents { display: none; }
+.pane { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.pane-h { padding: 10px 14px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+.pane-h h3 { margin: 0; font-size: 14px; }
+.who { display: flex; align-items: center; gap: 10px; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+.msgs { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.sys { align-self: center; font-size: 12px; color: var(--muted); background: var(--panel-2); border-radius: 999px; padding: 3px 12px; text-align: center; }
+.bubble { max-width: 86%; padding: 9px 12px; border-radius: 12px; white-space: pre-wrap; }
+.bubble.me { align-self: flex-end; background: var(--accent); color: var(--accent-text); border-bottom-right-radius: 4px; }
+.bubble.bot { align-self: flex-start; background: var(--panel-2); border-bottom-left-radius: 4px; }
+.meta { align-self: flex-start; display: flex; gap: 6px; flex-wrap: wrap; font-size: 12px; }
+.meta button { border: none; background: none; color: var(--accent); cursor: pointer; padding: 0; font-size: 12px; }
+.working { align-self: flex-start; display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+.spin { width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.suggest { padding: 0 14px 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+.suggest button { border: 1px dashed var(--line); background: none; border-radius: 999px; padding: 4px 10px; cursor: pointer; font-size: 12.5px; color: var(--muted); }
+.suggest button:hover { border-color: var(--accent); color: var(--text); }
+.composer { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); }
+.composer input { flex: 1; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 8px 10px; }
+
+.tabs { display: flex; gap: 2px; }
+.tabs button { border: none; background: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; color: var(--muted); }
+.tabs button.on { background: var(--panel-2); color: var(--text); font-weight: 600; }
+.agents-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.tab { display: none; flex: 1; min-height: 0; flex-direction: column; }
+.tab.on { display: flex; }
+.map { border-bottom: 1px solid var(--line); padding: 6px 8px 0; }
+.map svg { width: 100%; height: auto; display: block; max-height: 290px; }
+.node rect { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; transition: all .25s; }
+.node text { fill: var(--text); font-size: 12px; font-weight: 600; }
+.node .sub { fill: var(--muted); font-size: 10.5px; font-weight: 400; }
+.node.active rect { stroke-width: 3; }
+.node.done rect { stroke-dasharray: none; }
+.edge { stroke: var(--line); stroke-width: 1.5; fill: none; transition: all .25s; }
+.edge.active { stroke-width: 3; stroke-dasharray: 6 5; animation: flow .6s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -11; } }
+.toolbadge { font-size: 10.5px; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); padding: 4px 6px 8px; }
+.tl-h { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.timeline { flex: 1; overflow-y: auto; padding: 8px 10px 14px; }
+.ev { display: grid; grid-template-columns: 46px 1fr; gap: 8px; padding: 6px 4px; border-radius: 8px; }
+.ev:hover { background: var(--panel-2); }
+.ev .t { color: var(--muted); font-size: 11.5px; padding-top: 2px; text-align: right; font-variant-numeric: tabular-nums; }
+.ev .route { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 12px; }
+.tag { border-radius: 4px; padding: 0 6px; font-size: 11.5px; font-weight: 600; color: #fff; }
+.tag.tool { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); font-weight: 500; }
+.arrow { color: var(--muted); }
+.ev .say { margin-top: 2px; }
+.ev.tool .say { color: var(--muted); }
+.ev details { margin-top: 3px; }
+.ev summary { cursor: pointer; color: var(--accent); font-size: 12px; }
+.ev pre { margin: 4px 0 0; background: var(--panel-2); border-radius: 6px; padding: 8px; overflow-x: auto; max-height: 220px; white-space: pre-wrap; word-break: break-word; }
+.ev.parallel .t::after { content: " ∥"; }
+.empty { color: var(--muted); padding: 30px 16px; text-align: center; }
+.casebox { padding: 12px 14px; overflow-y: auto; }
+.casebox h4 { margin: 14px 0 6px; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th, td { text-align: left; padding: 6px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 500; }
+.st { font-size: 11.5px; border-radius: 4px; padding: 1px 6px; font-weight: 600; background: var(--panel-2); white-space: nowrap; }
+.st.good { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.st.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 15%, transparent); }
+.st.info { color: var(--info); background: color-mix(in srgb, var(--info) 13%, transparent); }
+.kv { display: grid; grid-template-columns: 140px 1fr; gap: 4px 10px; font-size: 12.5px; }
+.note { font-size: 12px; color: var(--muted); background: var(--panel-2); border-radius: 8px; padding: 8px 10px; margin-top: 10px; }
+
+@media (max-width: 860px) {
+  .login-grid { grid-template-columns: 1fr; }
+  .signin { position: static; }
+  #console { height: auto; }
+  .layout, .layout.hide-agents { grid-template-columns: 1fr; height: auto; }
+  .pane { min-height: 480px; }
+  header.top { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <span><b>Prototype</b> for review: no live agents. Daniel Okafor's chat replays a recorded run (M2, mock data, 19 LLM calls, 128 s).</span>
+  <span class="speed">Replay speed:
+    <button data-speed="1">1×</button><button data-speed="4" class="on">4×</button><button data-speed="15">15×</button>
+  </span>
+  <span class="spacer"></span>
+  <button class="btn" id="themeBtn" style="padding:1px 8px;font-size:12px">Theme</button>
+</div>
+
+<!-- ======================= SIGN-IN (simulated) ======================= -->
+<section id="login">
+  <h1>Who is contacting support?</h1>
+  <div class="muted">Simulated sign-in for demos. Pick a customer and how they reach us; the support agents receive only
+    what a real website, email or phone channel would send, never a customer id typed in by hand.</div>
+  <div class="login-grid">
+    <div>
+      <div class="toolbar">
+        <input id="search" placeholder="Search name, customer id or scenario…">
+        <button class="chip on" data-filter="all">All</button>
+        <button class="chip" data-filter="scenario">Demo scenarios</button>
+        <button class="chip" data-filter="bg">Other customers (500)</button>
+      </div>
+      <div class="cards" id="cards"></div>
+      <div class="note">The real app lists all 523 customers from the active backend (mock or Databricks) with search and
+        paging; the 23 scenario customers are pinned on top with what each one demonstrates.</div>
+    </div>
+    <aside class="signin" id="signin">
+      <div class="empty" id="signinEmpty">Select a customer to sign in.</div>
+      <div id="signinForm" hidden>
+        <div class="who"><div class="avatar" id="sAvatar"></div><div><h2 id="sName"></h2><div class="muted mono" id="sId"></div></div></div>
+        <div style="margin-top:12px;font-weight:600">Contact them via</div>
+        <div id="channels"></div>
+        <div class="gw"><div class="lbl">The channel gateway will send (sly_data)</div><div class="mono" id="gwPreview"></div></div>
+        <div class="note">The agents resolve this to a customer in code (intake_identity) — the model never sees or
+          chooses the customer id.</div>
+        <button class="btn primary" id="signinBtn" style="width:100%;margin-top:12px">Sign in and open chat</button>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ======================= CONSOLE ======================= -->
+<section id="console">
+  <header class="top">
+    <div class="brand">Customer support<small>multi-agent demo · support_multi_agent</small></div>
+    <span class="spacer"></span>
+    <span class="pill" id="whoPill"><span class="dot"></span><span id="whoText"></span></span>
+    <label class="switch"><input type="checkbox" id="showAgents" checked> Show agents</label>
+    <button class="btn" id="newChat">New conversation</button>
+    <button class="btn" id="switchCust">Switch customer</button>
+  </header>
+  <div class="layout" id="layout">
+    <!-- chat -->
+    <div class="pane">
+      <div class="pane-h"><div class="who"><div class="avatar" id="cAvatar"></div><div><h3 id="cName"></h3>
+        <div class="muted" style="font-size:12px" id="cSub"></div></div></div></div>
+      <div class="msgs" id="msgs"></div>
+      <div class="suggest" id="suggest"></div>
+      <form class="composer" id="composer"><input id="input" placeholder="Type a message as the customer…" autocomplete="off">
+        <button class="btn primary" id="sendBtn">Send</button></form>
+    </div>
+    <!-- behind the scenes -->
+    <div class="pane agents">
+      <div class="pane-h"><h3>Behind the scenes</h3><span class="spacer"></span>
+        <div class="tabs" id="tabs"><button class="on" data-tab="activity">Agent activity</button>
+          <button data-tab="case">Case</button><button data-tab="session">Session data</button></div></div>
+      <div class="agents-body">
+        <div class="tab on" id="tab-activity">
+          <div class="map"><svg id="map" viewBox="0 0 720 270" role="img" aria-label="Agent network"></svg>
+            <div class="legend">Lines light up while one agent is talking to another · small labels show the tool in use</div></div>
+          <div class="tl-h"><b style="font-size:13px">Conversation between agents</b><span class="spacer"></span>
+            <label class="switch"><input type="checkbox" id="showTools" checked> Tool calls</label>
+            <label class="switch"><input type="checkbox" id="technical"> Technical view</label></div>
+          <div class="timeline" id="timeline"><div class="empty">Send a message to see the agents work.</div></div>
+        </div>
+        <div class="tab" id="tab-case"><div class="casebox" id="casebox"><div class="empty">No case yet.</div></div></div>
+        <div class="tab" id="tab-session"><div class="casebox" id="sessionbox"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+// ------------------------------------------------------------------ test data (real ids from test_data)
+const CUSTOMERS = [
+  { id: "CUST-S08", name: "Daniel Okafor", tier: "silver", scn: "M2 · Stuck refund + loyalty points", cls: "action", recorded: true,
+    ask: ["Where is the money for my running shoes? And how many loyalty points do I have?", "I sent back my running shoes ages ago, where is my money?"],
+    ids: [["web_session", "sess_102a888270b451f3", "strong"], ["email", "daniel.okafor.cust-s08@example.com", "medium"]] },
+  { id: "CUST-S01", name: "Maya Chen", tier: "gold", scn: "S01 · Refund pending after warehouse scan", cls: "info",
+    ask: ["Where's my refund for the blue jacket?"], ids: [["web_session", "sess_ba6dd33e22266a0b", "strong"], ["email", "maya.chen.cust-s01@example.com", "medium"]] },
+  { id: "CUST-S02", name: "Lucas Ferreira", tier: "standard", scn: "S02 · Parcel in transit, moving normally", cls: "info",
+    ask: ["When will my sweater arrive?"], ids: [["web_session", "sess_d94d7fdcf41c2ed8", "strong"]] },
+  { id: "CUST-S03", name: "Hannah Becker", tier: "silver", scn: "S03 / M1 · Refund done but not on card · charged twice", cls: "escalate",
+    ask: ["I still don't see my refund for the shirt.", "My order was charged twice, and I want to return one item."],
+    ids: [["web_session", "sess_00d38174afd524fb", "strong"], ["email", "hannah.becker.cust-s03@example.com", "medium"]] },
+  { id: "CUST-S05", name: "Omar Haddad", tier: "gold", scn: "S05 · Two blue jackets, must pick one", cls: "info",
+    ask: ["I want to return the blue jacket.", "The puffer one."], ids: [["web_session", "sess_c25316a9eb41c4ff", "strong"], ["email", "omar.haddad.cust-s05@example.com", "medium"]] },
+  { id: "CUST-S09", name: "Chloe Martin", tier: "standard", scn: "S09 · Refund failed, card expired", cls: "action",
+    ask: ["Why haven't I got my refund for the red sweater?", "Yes, please issue it as store credit."], ids: [["web_session", "sess_7d19920e7352c62d", "strong"], ["email", "chloe.martin.cust-s09@example.com", "medium"]] },
+  { id: "CUST-S10", name: "Benjamin Clarke", tier: "silver", scn: "S10 / M3 · Shipment stuck 6 days", cls: "action",
+    ask: ["My shoes haven't moved in almost a week.", "Actually, I'd like to talk to a person please."], ids: [["web_session", "sess_ea65052a6b1fbd11", "strong"], ["phone", "+1-201-555-0100", "weak"]] },
+  { id: "CUST-S13", name: "Priya Raman", tier: "platinum", scn: "S13 · High-value refund needs approval", cls: "escalate",
+    ask: ["What's happening with the refund on my overcoat?"], ids: [["web_session", "sess_930c71cc9e31fb95", "strong"], ["email", "priya.raman.cust-s13@example.com", "medium"]] },
+  { id: "CUST-S14", name: "Liam O'Connor", tier: "standard", scn: "S14 · Return outside the 30-day window", cls: "deny",
+    ask: ["I'd like to return my grey rain jacket."], ids: [["web_session", "sess_b0d54ac2a69802b4", "strong"]] },
+  { id: "CUST-S16", name: "Ava Thompson", tier: "silver", scn: "S16 · Cancel an order that already shipped", cls: "deny",
+    ask: ["Please cancel my order."], ids: [["web_session", "sess_9d7e61e19db5aab6", "strong"]] },
+  { id: "CUST-S17A", name: "Alex Morgan", tier: "standard", scn: "S17 · Same name as another customer", cls: "info",
+    ask: ["Hi, it's Alex Morgan - where's my refund for the blue jacket?"], ids: [["web_session", "sess_f2e895a36319a54a", "strong"], ["email", "alex.morgan.cust-s17a@example.com", "medium"]] },
+  { id: "CUST-S18A", name: "Robert Silva", tier: "standard", scn: "S18 · Phone shared by two accounts", cls: "identity",
+    ask: ["Where's my order?"], ids: [["phone", "+1-299-555-0150", "weak", "Shared with Carla Silva's account: cannot be identified"], ["web_session", "sess_007cfe56ee31f210", "strong"]] },
+  { id: "CUST-S19A", name: "James Wright", tier: "standard", scn: "S19 · Asks about spouse's order", cls: "deny",
+    ask: ["Can you check where my wife's wool overcoat order is? Her name is Emily Wright."], ids: [["web_session", "sess_3010972c41050de4", "strong"]] },
+  { id: "CUST-S20", name: "Mia Johansson", tier: "standard", scn: "S20 · Injected instructions in a support note", cls: "info",
+    ask: ["Any update on my sweater return?"], ids: [["web_session", "sess_919f12193340c322", "strong"]] },
+  { id: "CUST-B0042", name: "Tim Serrano", tier: "standard", scn: "Background customer · 5 orders", cls: "bg",
+    ask: ["Where is my latest order?"], ids: [["web_session", "sess_d7c63ae64022bfd7", "strong"], ["email", "tim.serrano.cust-b0042@example.com", "medium"], ["phone", "+1-201-555-0129", "weak"]] },
+];
+const CHANNEL_INFO = {
+  web_session: ["Website, signed in", "Strong sign-in: questions answered and changes allowed"],
+  email: ["Email", "Medium: questions answered; changes allowed by policy"],
+  phone: ["Phone", "Weak: questions answered; changes need a stronger sign-in"],
+};
+const CLS_LABEL = { info: "Answer", action: "Fix it", deny: "Explain no", escalate: "Hand to a person", identity: "Not identified", bg: "Free form" };
+
+// ------------------------------------------------------------------ agents (support_multi_agent.hocon)
+// x/y: top-left of each node in the 720x270 map; tool badges appear to the right of the specialist column
+const AGENTS = {
+  customer:               { label: "Customer",           sub: "chat",                         color: "--a-cust",    x: 10,  y: 114 },
+  support_orchestrator:   { label: "Orchestrator",       sub: "front agent · owns the case",  color: "--a-orch",    x: 195, y: 114 },
+  intake_identity:        { label: "Intake & Identity",  sub: "who is it, what's asked",      color: "--a-intake",  x: 400, y: 4 },
+  order_delivery:         { label: "Orders & Delivery",  sub: "shipments, cancels",           color: "--a-order",   x: 400, y: 48 },
+  returns_refunds:        { label: "Returns & Refunds",  sub: "returns, refunds",             color: "--a-returns", x: 400, y: 92 },
+  payments_billing:       { label: "Payments & Billing", sub: "charges, card refunds",        color: "--a-pay",     x: 400, y: 136 },
+  loyalty_account:        { label: "Loyalty & Account",  sub: "points, tier",                 color: "--a-loyal",   x: 400, y: 180 },
+  policy_risk_escalation: { label: "Policy & Risk",      sub: "allow / deny / escalate",      color: "--a-policy",  x: 400, y: 224 },
+};
+
+// ------------------------------------------------------------------ the recorded M2 run, trimmed
+// t = seconds since the message was sent; from/to = agents; tool = tool name (to = the agent that owns it)
+const M2 = [
+  { t: 0,     from: "customer", to: "support_orchestrator", plain: "Customer sends the message.", tech: "chat request with sly_data {channel, identifier}" },
+  { t: 9.7,   from: "support_orchestrator", to: "intake_identity", plain: "Orchestrator asks Intake to identify the customer and split the message into issues.",
+    tech: "Invoking intake_identity", detail: { customer_message: "Where is the money for my running shoes? And how many loyalty points do I have?" } },
+  { t: 14.3,  from: "intake_identity", tool: "open_case", plain: "Opens a case and checks identity (in code, from the channel).",
+    detail: { result: { case_id: "CASE-62EB3DA162", created: true, identity_status: "verified", can_read_account: true, can_request_changes: true } },
+    effect: { case: "CASE-62EB3DA162", identity: "verified" } },
+  { t: 19.2,  from: "intake_identity", tool: "add_issues", plain: "Records two issues: the refund and the points balance.",
+    detail: { args: { issues: [{ domain: "returns_refunds", kind: "refund_status", item_query: "running shoes" }, { domain: "loyalty_account", kind: "missing_points" }] },
+              result: { issues: ["CASE-62EB3DA162-I1", "CASE-62EB3DA162-I2"] } },
+    effect: { issues: [["I1", "returns_refunds", "Refund for running shoes", "open"], ["I2", "loyalty_account", "Loyalty points balance", "open"]] } },
+  { t: 22.5,  from: "intake_identity", to: "support_orchestrator", reply: true, plain: "Intake reports back: customer verified, case opened, 2 issues.",
+    detail: { identity_status: "verified", case_id: "CASE-62EB3DA162", issues: 2 } },
+  { t: 49.1,  from: "support_orchestrator", to: "returns_refunds", plain: "Asks Returns & Refunds where the money for the running shoes is.", parallel: true,
+    detail: { issue_id: "CASE-62EB3DA162-I1", request: "Find out where the refund money is for the customer's running shoes: refund status, amount, and expected timing" },
+    effect: { status: ["I1", "investigating"] } },
+  { t: 49.1,  from: "support_orchestrator", to: "loyalty_account", plain: "At the same time, asks Loyalty & Account for the points balance.", parallel: true,
+    detail: { issue_id: "CASE-62EB3DA162-I2", request: "Find out the customer's current loyalty points balance." }, effect: { status: ["I2", "investigating"] } },
+  { t: 53.1,  from: "loyalty_account", tool: "get_loyalty_profile", plain: "Reads the loyalty profile: 0 points, silver tier.",
+    detail: { result: { as_of: "2026-10-16", points: 0, tier: "silver", member_since: "2025-02-23", tier_records_agree: true } } },
+  { t: 54.9,  from: "returns_refunds", tool: "find_order_items", plain: "Finds the item: orange Trail Running Shoes, $119.", parallel: true,
+    detail: { args: { item_query: "running shoes" }, result: { result: "unique", items: [{ item_id: "ITM-S08-1-1", order_id: "ORD-S08-1", title: "Trail Running Shoes", color: "orange", size: "10", price: 119.0 }] } } },
+  { t: 55.0,  from: "returns_refunds", tool: "get_stuck_cases", plain: "Checks for stuck cases: the refund is stuck (return received 9 days ago).", parallel: true,
+    detail: { result: { stuck_cases: [{ case_id: "RET-S08-1-1", item_id: "ITM-S08-1-1", diagnosis: "stuck_refund", case_state: "received", last_activity_at: "2026-10-07T13:00:00Z", days_since_activity: 9 }] } } },
+  { t: 55.1,  from: "returns_refunds", tool: "get_returns_refunds", plain: "Reads the return and refund records: returned, no refund issued.", parallel: true,
+    detail: { result: { items: [{ item_id: "ITM-S08-1-1", item_status: "returned", return_received: "2026-10-07", refunds: [] }] } } },
+  { t: 65.0,  from: "returns_refunds", tool: "check_return_eligibility", plain: "Checks what is allowed: a refund of $119 can be started.", parallel: true,
+    detail: { args: { item_id: "ITM-S08-1-1" }, result: { checks: { create_return: { applicable: false, reason: "return_exists" }, initiate_refund: { applicable: true, reason: "ok", amount: 119.0 } } } } },
+  { t: 65.0,  from: "returns_refunds", tool: "get_order_timeline", plain: "Reads the order timeline (7 events, delivered 25 September).", parallel: true,
+    detail: { result: { order_id: "ORD-S08-1", events: ["order_placed 2026-09-21", "shipment_label_created 2026-09-22", "…", "delivered 2026-09-25", "return_received 2026-10-07"] } } },
+  { t: 80.4,  from: "loyalty_account", tool: "record_findings", plain: "Files its finding on the case: balance is 0 points.",
+    detail: { args: { issue_id: "CASE-62EB3DA162-I2", conclusion: "The customer's current loyalty points balance is 0 as of 2026-10-16…" }, result: { status: "investigating", proposal: null } } },
+  { t: 82.3,  from: "loyalty_account", to: "support_orchestrator", reply: true, plain: "Loyalty answers: 0 points, silver tier since Feb 2025. Nothing to fix.",
+    detail: { issue_id: "CASE-62EB3DA162-I2", facts: ["The customer's current loyalty points balance is 0 as of 2026-10-16. The account is a silver tier member since 2025-02-23…"], proposed_action: null, needs_from_customer: null } },
+  { t: 85.6,  from: "returns_refunds", tool: "record_findings", plain: "Files its finding and proposes: start the $119 refund.",
+    detail: { args: { issue_id: "CASE-62EB3DA162-I1", proposed_action: { action: "initiate_refund", target_id: "ITM-S08-1-1" } }, result: { status: "proposed" } },
+    effect: { status: ["I1", "proposed"], proposal: ["I1", "initiate_refund → ITM-S08-1-1"] } },
+  { t: 90.3,  from: "returns_refunds", to: "support_orchestrator", reply: true, plain: "Returns & Refunds answers: return received 7 Oct, refund never started — propose starting it.",
+    detail: { issue_id: "CASE-62EB3DA162-I1", facts: ["Delivered 2026-09-25, return received 2026-10-07, but no refund has been issued."], proposed_action: { action: "initiate_refund", target_id: "ITM-S08-1-1" } } },
+  { t: 100.0, from: "support_orchestrator", to: "policy_risk_escalation", plain: "Asks Policy & Risk whether the refund is allowed.", parallel: true,
+    detail: { issue_id: "CASE-62EB3DA162-I1" } },
+  { t: 100.0, from: "support_orchestrator", tool: "update_issue", plain: "Closes the points question as answered.", parallel: true,
+    detail: { args: { issue_id: "CASE-62EB3DA162-I2", status: "resolved_info_only" } }, effect: { status: ["I2", "resolved_info_only"] } },
+  { t: 103.7, from: "policy_risk_escalation", tool: "evaluate_policy", plain: "Runs the policy rules: identity, sign-in strength, amount limit, risk flags — all pass.",
+    detail: { result: { action: "initiate_refund", target_id: "ITM-S08-1-1", recommendation: "ALLOW", reason: "ok" } } },
+  { t: 108.8, from: "policy_risk_escalation", to: "support_orchestrator", reply: true, plain: "Policy & Risk answers: ALLOW.",
+    detail: { recommendation: "ALLOW", explanation: "The refund action is permitted. All checks passed, including identity, sign-in strength, target on account…" },
+    effect: { policy: ["initiate_refund", "ALLOW", "all checks passed"] } },
+  { t: 123.4, from: "support_orchestrator", tool: "submit_action", plain: "Submits the refund. The action layer re-checks the policy and executes it.",
+    detail: { args: { issue_id: "CASE-62EB3DA162-I1" }, result: { outcome: "executed", action: "initiate_refund", target_id: "ITM-S08-1-1", amount: 119.0, reference: "ACT-099DC270C4" } },
+    effect: { status: ["I1", "executed_verified"], action: ["initiate_refund", "ITM-S08-1-1", "$119.00", "executed", "ACT-099DC270C4"] } },
+  { t: 125.1, from: "support_orchestrator", tool: "case_state", plain: "Completes the case: both issues resolved, no person needed.",
+    detail: { args: { op: "complete" }, result: { outcome: "resolved", resolved: ["CASE-62EB3DA162-I1", "CASE-62EB3DA162-I2"], with_people: [] } }, effect: { outcome: "resolved" } },
+  { t: 129.8, from: "support_orchestrator", to: "customer", reply: true, plain: "Orchestrator writes the answer to the customer.", answer: true },
+];
+const M2_ANSWER = "Here's what I found and what happened:\n\n**Running shoes refund** — Your orange Trail Running Shoes (size 10, $119.00) were delivered on 25 September and the return was received at our warehouse on 7 October, but no refund had been issued yet. I've now initiated a refund of **$119.00** to the card on file (ending in 0417). Reference: **ACT-099DC270C4**. Refunds to a card typically take 5–10 business days to appear after the refund completes (the time is counted from completion, not from when it was initiated).\n\n**Loyalty points** — As of 16 October 2026, your points balance is **0**. Your account is silver tier, member since 23 February 2025.\n\nYou can check the refund status on your order page.";
+const M2_STATS = { calls: 19, seconds: 128, tokens: 65868 };
+
+// ------------------------------------------------------------------ helpers
+const $ = (id) => document.getElementById(id);
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const initials = (n) => n.split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+const md = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+let speed = 4, selected = null, channelIdx = 0, session = null, running = false, timers = [];
+
+try { const t = localStorage.getItem("demo-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+$("themeBtn").onclick = () => {
+  const dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark"
+    : matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("demo-theme", document.documentElement.dataset.theme); } catch (e) {}
+  drawMap();
+};
+document.querySelectorAll("[data-speed]").forEach((b) => b.onclick = () => {
+  speed = +b.dataset.speed; document.querySelectorAll("[data-speed]").forEach((x) => x.classList.toggle("on", x === b));
+});
+
+// ------------------------------------------------------------------ sign-in screen
+let filter = "all";
+function renderCards() {
+  const q = $("search").value.toLowerCase();
+  // "scenario" = the pinned demo customers, "bg" = the background customers
+  $("cards").innerHTML = CUSTOMERS.filter((c) => (filter === "all" || (filter === "bg") === (c.cls === "bg"))
+      && (c.name + c.id + c.scn).toLowerCase().includes(q))
+    .map((c) => `<button class="card ${selected === c ? "sel" : ""}" data-id="${c.id}">
+        <div class="name">${esc(c.name)} <span class="tier">${c.tier}</span></div>
+        <div class="muted mono">${c.id}</div>
+        <div class="scn">${esc(c.scn)}</div>
+        <div style="margin-top:6px"><span class="cls ${c.cls}">${CLS_LABEL[c.cls]}</span>
+        ${c.recorded ? '<span class="cls action" style="margin-left:4px">recorded replay</span>' : ""}</div></button>`).join("");
+  $("cards").querySelectorAll(".card").forEach((el) => el.onclick = () => selectCustomer(CUSTOMERS.find((c) => c.id === el.dataset.id)));
+}
+function selectCustomer(c) {
+  selected = c; channelIdx = 0; renderCards();
+  $("signinEmpty").hidden = true; $("signinForm").hidden = false;
+  $("sAvatar").textContent = initials(c.name); $("sName").textContent = c.name; $("sId").textContent = `${c.id} · ${c.tier}`;
+  const opts = c.ids.map(([ch, ident, lvl, warn], i) => `<label class="opt"><input type="radio" name="ch" value="${i}" ${i === 0 ? "checked" : ""}>
+      <div><div class="t">${CHANNEL_INFO[ch][0]} <span class="tier">${lvl}</span></div>
+      <div class="mono muted">${esc(ident)}</div><div class="d">${esc(warn || CHANNEL_INFO[ch][1])}</div></div></label>`);
+  opts.push(`<label class="opt"><input type="radio" name="ch" value="-1"><div><div class="t">Not signed in</div>
+      <div class="d">Anonymous visitor: the agents must not share any account data</div></div></label>`);
+  $("channels").innerHTML = opts.join("");
+  $("channels").querySelectorAll("input").forEach((r) => r.onchange = () => { channelIdx = +r.value; preview(); });
+  preview();
+}
+function gatewaySly() {
+  if (channelIdx < 0) return { channel: "web_session" };
+  const [ch, ident] = selected.ids[channelIdx];
+  return { channel: ch, identifier: ident };
+}
+function preview() { $("gwPreview").textContent = JSON.stringify(gatewaySly()); }
+$("search").oninput = renderCards;
+document.querySelectorAll("[data-filter]").forEach((b) => b.onclick = () => {
+  filter = b.dataset.filter;
+  document.querySelectorAll("[data-filter]").forEach((x) => x.classList.toggle("on", x === b));
+  renderCards();
+});
+$("signinBtn").onclick = () => openConsole();
+$("switchCust").onclick = () => { stopReplay(); $("console").style.display = "none"; $("login").style.display = "block"; };
+
+// ------------------------------------------------------------------ console
+function openConsole() {
+  const sly = gatewaySly();
+  const verified = channelIdx >= 0 && !selected.ids[channelIdx][3];
+  session = { customer: selected, sly, verified, level: channelIdx >= 0 ? selected.ids[channelIdx][2] : null, caseState: null };
+  $("login").style.display = "none"; $("console").style.display = "block";
+  $("cAvatar").textContent = initials(selected.name); $("cName").textContent = selected.name;
+  const chName = channelIdx >= 0 ? CHANNEL_INFO[selected.ids[channelIdx][0]][0] : "Not signed in";
+  $("cSub").textContent = `${chName}${session.level ? " · " + session.level + " sign-in" : ""} · ${selected.scn}`;
+  $("whoText").textContent = `${selected.name} · ${chName}`;
+  newConversation();
+}
+function newConversation() {
+  stopReplay();
+  $("msgs").innerHTML = `<div class="sys">New conversation · ${esc(session.customer.name)} via ${esc(session.sly.channel)} · a fresh agent session</div>`;
+  $("timeline").innerHTML = `<div class="empty">Send a message to see the agents work.</div>`;
+  session.caseState = null; renderCase(); renderSession(null); drawMap();
+  $("suggest").innerHTML = session.customer.ask.map((q) => `<button type="button">${esc(q)}</button>`).join("");
+  $("suggest").querySelectorAll("button").forEach((b) => b.onclick = () => { $("input").value = b.textContent; $("input").focus(); });
+}
+$("newChat").onclick = newConversation;
+$("showAgents").onchange = (e) => $("layout").classList.toggle("hide-agents", !e.target.checked);
+document.querySelectorAll("#tabs button").forEach((b) => b.onclick = () => {
+  document.querySelectorAll("#tabs button").forEach((x) => x.classList.toggle("on", x === b));
+  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("on", t.id === "tab-" + b.dataset.tab));
+});
+$("showTools").onchange = () => document.querySelectorAll(".ev.tool").forEach((e) => e.hidden = !$("showTools").checked);
+$("technical").onchange = () => document.querySelectorAll(".ev").forEach((e) => {
+  e.querySelector(".say").textContent = $("technical").checked ? e.dataset.tech : e.dataset.plain;
+});
+
+$("composer").onsubmit = (e) => {
+  e.preventDefault();
+  const text = $("input").value.trim();
+  if (!text || running) return;
+  $("input").value = ""; addMsg("me", text);
+  if (session.customer.recorded && session.verified && /money|refund|points/i.test(text)) return replay(M2);
+  addMsg("bot", session.verified
+    ? `(Prototype) In the real app this message goes to the live agents for ${session.customer.name}. Only Daniel Okafor's refund + points conversation is recorded here: sign in as Daniel and use the first suggested question.`
+    : "(Prototype) Not identified: the live agents would answer without any account data and ask the customer to sign in.");
+};
+function addMsg(who, text) {
+  const d = document.createElement("div"); d.className = "bubble " + who; d.innerHTML = md(text);
+  $("msgs").appendChild(d); $("msgs").scrollTop = 1e9; return d;
+}
+
+// ------------------------------------------------------------------ replay
+function stopReplay() { timers.forEach(clearTimeout); timers = []; running = false; $("sendBtn").disabled = false; }
+function replay(events) {
+  running = true; $("sendBtn").disabled = true;
+  session.caseState = { case: null, identity: null, issues: [], actions: [], policy: null, outcome: "open" };
+  $("timeline").innerHTML = "";
+  const working = document.createElement("div"); working.className = "working";
+  working.innerHTML = `<span class="spin"></span><span id="workText">Working on it…</span>`;
+  $("msgs").appendChild(working); $("msgs").scrollTop = 1e9;
+  const start = performance.now();
+  events.forEach((ev) => timers.push(setTimeout(() => {
+    step(ev);
+    if (!ev.answer) $("workText").textContent = statusLine(ev, ((performance.now() - start) / 1000 * speed).toFixed(0));
+    if (ev.answer) {
+      working.remove(); addMsg("bot", M2_ANSWER);
+      const m = document.createElement("div"); m.className = "meta";
+      m.innerHTML = `<span class="pill">${M2_STATS.calls} LLM calls</span><span class="pill">${M2_STATS.seconds} s</span>
+        <span class="pill">2 issues resolved</span><span class="pill">1 action executed</span>
+        <button type="button" id="howBtn">See how the agents got here →</button>`;
+      $("msgs").appendChild(m); $("msgs").scrollTop = 1e9;
+      $("howBtn").onclick = () => { $("showAgents").checked = true; $("layout").classList.remove("hide-agents"); document.querySelector('[data-tab="activity"]').click(); };
+      renderSession(true); stopReplay();
+    }
+  }, ev.t * 1000 / speed)));
+}
+function statusLine(ev, s) {
+  const who = AGENTS[ev.to && !ev.reply ? ev.to : ev.from];
+  return `${who ? who.label : "Agents"} ${ev.tool ? "is using " + ev.tool : ev.reply ? "reported back" : "is working"}… (${s} s)`;
+}
+function step(ev) {
+  const fx = ev.effect || {}, cs = session.caseState;
+  if (fx.case) { cs.case = fx.case; cs.identity = fx.identity; }
+  if (fx.issues) cs.issues = fx.issues.map(([id, d, s, st]) => ({ id, domain: d, summary: s, status: st, proposal: null }));
+  if (fx.status) cs.issues.find((i) => i.id === fx.status[0]).status = fx.status[1];
+  if (fx.proposal) cs.issues.find((i) => i.id === fx.proposal[0]).proposal = fx.proposal[1];
+  if (fx.policy) cs.policy = fx.policy;
+  if (fx.action) cs.actions.push(fx.action);
+  if (fx.outcome) cs.outcome = fx.outcome;
+  renderCase(); addEvent(ev); drawMap(ev);
+}
+function tagFor(name) { const a = AGENTS[name]; return `<span class="tag" style="background:${css(a.color)}">${a.label}</span>`; }
+function addEvent(ev) {
+  const el = document.createElement("div");
+  el.className = "ev" + (ev.tool ? " tool" : "") + (ev.parallel ? " parallel" : "");
+  const route = ev.tool ? `${tagFor(ev.from)}<span class="arrow">uses</span><span class="tag tool mono">${ev.tool}</span>`
+    : `${tagFor(ev.from)}<span class="arrow">${ev.reply ? "replies to" : "→"}</span>${tagFor(ev.to)}`;
+  el.dataset.plain = ev.plain;
+  el.dataset.tech = ev.tech || (ev.tool ? `${ev.tool}(${JSON.stringify((ev.detail || {}).args || {})})` : ev.reply ? `result from ${ev.from}` : `Invoking ${ev.to}`);
+  el.innerHTML = `<div class="t">${ev.t.toFixed(1)}s</div><div><div class="route">${route}</div>
+    <div class="say">${esc($("technical").checked ? el.dataset.tech : ev.plain)}</div>
+    ${ev.detail ? `<details><summary>${ev.tool ? "arguments and result" : "message"}</summary><pre class="mono">${esc(JSON.stringify(ev.detail, null, 2))}</pre></details>` : ""}</div>`;
+  if (ev.tool && !$("showTools").checked) el.hidden = true;
+  if ($("timeline").querySelector(".empty")) $("timeline").innerHTML = "";
+  $("timeline").appendChild(el); $("timeline").scrollTop = 1e9;
+}
+
+// ------------------------------------------------------------------ network map (SVG)
+const W = 150, H = 38;
+function drawMap(ev) {
+  const svg = $("map"); const active = new Set(); let edge = null, toolOn = null;
+  if (ev && !ev.answer) {
+    if (ev.tool) { active.add(ev.from); toolOn = [ev.from, ev.tool]; }
+    else { active.add(ev.from); active.add(ev.to); edge = [ev.from, ev.to].sort().join("|"); }
+  }
+  if (!ev) session.used = new Set();  // a new conversation clears which agents took part
+  else [ev.from, ev.to].forEach((a) => a && session.used.add(a));
+  const usedNow = session.used;
+  const links = [["customer", "support_orchestrator"], ...Object.keys(AGENTS).filter((k) => !["customer", "support_orchestrator"].includes(k)).map((k) => ["support_orchestrator", k])];
+  let out = "";
+  for (const [a, b] of links) {
+    const A = AGENTS[a], B = AGENTS[b]; const on = edge === [a, b].sort().join("|");
+    const x1 = A.x + W / 2, y1 = A.y + H / 2, x2 = B.x - 4, y2 = B.y + H / 2;
+    const mx = (x1 + x2) / 2;
+    out += `<path class="edge ${on ? "active" : ""}" d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" ${on ? `style="stroke:${css(AGENTS[ev.from].color)}"` : ""}/>`;
+  }
+  for (const [k, a] of Object.entries(AGENTS)) {
+    const on = active.has(k), was = usedNow.has(k), col = css(a.color);
+    out += `<g class="node ${on ? "active" : ""}" transform="translate(${a.x},${a.y})">
+      <rect width="${W}" height="${H}" rx="8" style="${on || was ? `stroke:${col}` : ""};${on ? `fill:color-mix(in srgb, ${col} 14%, ${css("--panel")})` : ""}"/>
+      <circle cx="12" cy="${H / 2}" r="4.5" fill="${col}" opacity="${on || was ? 1 : 0.35}"/>
+      <text x="22" y="16">${a.label}</text><text class="sub" x="22" y="30">${a.sub}</text></g>`;
+    if (toolOn && toolOn[0] === k) {
+      // the orchestrator's own tools show under it; specialists' tools to the right of their node
+      const bx = k === "support_orchestrator" ? a.x : a.x + W + 10, by = k === "support_orchestrator" ? a.y + H + 6 : a.y + 11;
+      out += `<g transform="translate(${bx},${by})"><rect width="${toolOn[1].length * 7 + 26}" height="17" rx="4" fill="${col}"/>
+        <text class="toolbadge mono" x="7" y="12" fill="#fff">⚙ ${toolOn[1]}</text></g>`;
+    }
+  }
+  svg.innerHTML = out;
+}
+
+// ------------------------------------------------------------------ case + session panels
+const STATUS = { open: ["open", "info"], investigating: ["investigating", "info"], proposed: ["fix proposed", "warn"],
+  executed_verified: ["fixed and verified", "good"], resolved_info_only: ["answered", "good"], queued_for_review: ["waiting for a person", "warn"], handed_off: ["with a person", "warn"] };
+function renderCase() {
+  const cs = session && session.caseState;
+  if (!cs || !cs.case) { $("casebox").innerHTML = `<div class="empty">No case yet. Intake opens one on the first message.</div>`; return; }
+  // st(status) uses the friendly label; st(status, text) shows other text in that status's colour
+  const st = (s, text) => `<span class="st ${(STATUS[s] || [s, ""])[1]}">${esc(text || (STATUS[s] || [s])[0])}</span>`;
+  $("casebox").innerHTML = `<div class="kv"><div class="muted">Case</div><div class="mono">${cs.case}</div>
+      <div class="muted">Identity</div><div>${st(cs.identity === "verified" ? "executed_verified" : "open", cs.identity)}</div>
+      <div class="muted">Outcome</div><div>${cs.outcome === "resolved" ? st("executed_verified", "resolved without a person") : st("investigating", "in progress")}</div></div>
+    <h4>Issues</h4><table><tr><th>#</th><th>Specialist</th><th>Issue</th><th>Status</th></tr>
+      ${cs.issues.map((i) => `<tr><td>${i.id}</td><td>${tagFor(i.domain)}</td><td>${esc(i.summary)}${i.proposal ? `<div class="muted mono">${esc(i.proposal)}</div>` : ""}</td><td>${st(i.status)}</td></tr>`).join("")}</table>
+    <h4>Policy decisions</h4>${cs.policy ? `<table><tr><th>Action</th><th>Decision</th><th>Why</th></tr><tr><td class="mono">${cs.policy[0]}</td><td>${st("executed_verified", cs.policy[1])}</td><td>${cs.policy[2]}</td></tr></table>` : `<div class="muted">None yet.</div>`}
+    <h4>Actions</h4>${cs.actions.length ? `<table><tr><th>Action</th><th>Target</th><th>Amount</th><th>Outcome</th><th>Reference</th></tr>
+      ${cs.actions.map((a) => `<tr><td class="mono">${a[0]}</td><td class="mono">${a[1]}</td><td>${a[2]}</td><td>${st("executed_verified", a[3])}</td><td class="mono">${a[4]}</td></tr>`).join("")}</table>` : `<div class="muted">None yet.</div>`}
+    <div class="note">Live app: read from the case store (CASE_STORE_PATH) after each agent event. Items queued for a person link to the review console (http://127.0.0.1:8090).</div>`;
+}
+function renderSession(done) {
+  if (!session) return;
+  const after = done ? { ...session.sly, customer_id: session.customer.id, auth_level: session.level, identity_status: "verified", case_id: "CASE-62EB3DA162" } : null;
+  $("sessionbox").innerHTML = `<h4 style="margin-top:0">Sent by the channel gateway (sly_data)</h4><pre class="mono" style="background:var(--panel-2);padding:8px;border-radius:6px">${esc(JSON.stringify(session.sly, null, 2))}</pre>
+    <h4>After the turn (resolved in code, never shown to the model)</h4>${after ? `<pre class="mono" style="background:var(--panel-2);padding:8px;border-radius:6px">${esc(JSON.stringify(after, null, 2))}</pre>` : `<div class="muted">Appears after the first answer.</div>`}
+    <h4>Returned to the browser</h4><div class="muted">Only <span class="mono">case_id</span> (allow.to_upstream), sent back on the next turn.</div>
+    <h4>Cost of the last turn</h4>${done ? `<div class="kv"><div class="muted">LLM calls</div><div>${M2_STATS.calls}</div><div class="muted">Tokens</div><div>${M2_STATS.tokens.toLocaleString()}</div><div class="muted">Time</div><div>${M2_STATS.seconds} s</div><div class="muted">Model</div><div class="mono">nvidia/nemotron-3.5-super-vl:free</div></div>` : `<div class="muted">—</div>`}`;
+}
+
+renderCards();
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+id: S06
+title: '"My jacket" matches a delivered blue jacket and an in-transit black jacket'
+phase: ambiguity
+customers:
+  - id: CUST-S06
+    name: Sofia Rossi
+    tier: silver
+    created_days_ago: 450
+    identities:
+      - {channel: web_session}
+    orders:
+      - placed_days_ago: 20
+        items:
+          - {key: puffer, title: Classic Puffer Jacket, category: outerwear, color: blue, size: S, price: 125.00}
+        shipments:
+          - events: [[label_created, 19], [picked_up, 19], [in_transit, 18], [out_for_delivery, 16], [delivered, 16]]
+      - placed_days_ago: 2
+        items:
+          - {key: puffer_black, title: Classic Puffer Jacket, category: outerwear, color: black, size: S, price: 125.00}
+        shipments:
+          - events: [[label_created, 1], [picked_up, 1], [in_transit, 0]]
+expected:
+  customer: CUST-S06
+  channel: web_session
+  question: "Where is my jacket?"
+  matching_items: [ITM-S06-1-1, ITM-S06-2-1]
+  diagnosis: []
+  action: none
+  answer_mentions: [either asks blue or black, or covers both - blue delivered 16 days ago and black in transit]

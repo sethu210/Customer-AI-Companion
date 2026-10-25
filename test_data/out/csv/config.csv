@@ -1,0 +1,7 @@
+key,value
+auto_refund_max,150.0
+reference_date,2026-10-16
+return_window_days,30
+seed,20261016
+stuck_refund_days,5
+stuck_shipment_days,4

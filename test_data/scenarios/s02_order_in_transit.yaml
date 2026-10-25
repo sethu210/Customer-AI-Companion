@@ -1,0 +1,25 @@
+id: S02
+title: Order in transit, picked up 2 days ago, moving normally
+phase: read
+customers:
+  - id: CUST-S02
+    name: Lucas Ferreira
+    tier: standard
+    created_days_ago: 120
+    identities:
+      - {channel: web_session}
+    orders:
+      - placed_days_ago: 3
+        items:
+          - {key: sweater, title: Merino Crew Sweater, category: knitwear, color: navy, size: L, price: 82.00}
+        shipments:
+          - carrier: UPS
+            events: [[label_created, 2], [picked_up, 2], [in_transit, 1]]
+expected:
+  customer: CUST-S02
+  channel: web_session
+  question: "When will my sweater arrive?"
+  matching_items: [ITM-S02-1-1]
+  diagnosis: []
+  action: none
+  answer_mentions: [in transit with UPS, last scan yesterday, tracking number]

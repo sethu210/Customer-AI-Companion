@@ -1,0 +1,30 @@
+id: S05
+title: Two blue jackets in different orders - must disambiguate from the customer's own data
+phase: ambiguity
+customers:
+  - id: CUST-S05
+    name: Omar Haddad
+    tier: gold
+    created_days_ago: 1000
+    identities:
+      - {channel: web_session}
+      - {channel: email}
+    orders:
+      - placed_days_ago: 40
+        items:
+          - {key: puffer, title: Classic Puffer Jacket, category: outerwear, color: blue, size: L, price: 139.00}
+        shipments:
+          - events: [[label_created, 39], [picked_up, 39], [in_transit, 38], [out_for_delivery, 36], [delivered, 36]]
+      - placed_days_ago: 12
+        items:
+          - {key: shell, title: Rain Shell Jacket, category: outerwear, color: blue, size: M, price: 92.00}
+        shipments:
+          - events: [[label_created, 11], [picked_up, 11], [in_transit, 10], [out_for_delivery, 8], [delivered, 8]]
+expected:
+  customer: CUST-S05
+  channel: web_session
+  question: "I want to return the blue jacket."
+  matching_items: [ITM-S05-1-1, ITM-S05-2-1]
+  diagnosis: []
+  action: none
+  answer_mentions: [asks one question - puffer jacket ordered 40 days ago or rain shell ordered 12 days ago, puffer is outside the 30-day window]

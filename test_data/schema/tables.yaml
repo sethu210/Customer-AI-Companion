@@ -1,0 +1,219 @@
+# Canonical test-data schema shared by the generator, the mock adapter and the Databricks loader.
+# Column types: string | int | double | bool | timestamp | date
+# A column with "enum" must hold one of the values listed under enums; "fk" names table.column it references.
+
+enums:
+  customer_tier: [standard, silver, gold, platinum]
+  channel: [web_session, email, phone]
+  auth_level: [strong, medium, weak]
+  order_status: [processing, shipped, partially_shipped, delivered, cancelled]
+  item_status: [processing, shipped, delivered, return_requested, returned, cancelled]
+  shipment_status: [label_created, in_transit, out_for_delivery, delivered, exception]
+  shipment_event: [label_created, picked_up, in_transit, out_for_delivery, delivered, exception]
+  return_reason: [wrong_size, damaged, not_as_described, changed_mind, late_delivery]
+  return_status: [label_created, in_transit, received, inspected, rejected]
+  refund_status: [pending, processing, completed, failed]
+  refund_method: [original_payment, store_credit]
+  payment_status: [authorized, captured, refunded, partially_refunded]
+  contact_channel: [chat, email, phone]
+  product_category: [outerwear, knitwear, pants, footwear, accessories, shirts, activewear]
+  season: [all_year, cold_weather, wet_weather, warm_weather, spring_fall]
+  product_relation: [complement, alternative, upgrade]
+  style_tag: [smart, casual, classic, minimal, outdoor, sport, statement, cosy]
+  colour_family: [dark_neutral, light_neutral, earth, blue, green, warm]
+
+tables:
+  customers:
+    primary_key: customer_id
+    columns:
+      customer_id: {type: string}
+      full_name: {type: string}
+      tier: {type: string, enum: customer_tier}
+      created_at: {type: timestamp}
+      risk_flags: {type: string, nullable: true}   # semicolon-separated, e.g. "high_refund_rate;fraud_review"
+
+  channel_identities:
+    primary_key: identity_id
+    columns:
+      identity_id: {type: string}
+      customer_id: {type: string, fk: customers.customer_id}
+      channel: {type: string, enum: channel}
+      identifier: {type: string}                   # session token, email address or phone number
+      verified: {type: bool}
+      auth_level: {type: string, enum: auth_level}
+
+  orders:
+    primary_key: order_id
+    columns:
+      order_id: {type: string}
+      customer_id: {type: string, fk: customers.customer_id}
+      placed_at: {type: timestamp}
+      status: {type: string, enum: order_status}
+      total: {type: double}
+      currency: {type: string}
+
+  shipments:
+    primary_key: shipment_id
+    columns:
+      shipment_id: {type: string}
+      order_id: {type: string, fk: orders.order_id}
+      carrier: {type: string}
+      tracking_no: {type: string}
+      status: {type: string, enum: shipment_status}
+
+  order_items:
+    primary_key: item_id
+    columns:
+      item_id: {type: string}
+      order_id: {type: string, fk: orders.order_id}
+      shipment_id: {type: string, fk: shipments.shipment_id, nullable: true}
+      sku: {type: string, fk: product_variants.sku}
+      title: {type: string}
+      color: {type: string}
+      category: {type: string, enum: product_category}
+      size: {type: string, nullable: true}
+      qty: {type: int}
+      price: {type: double}
+      item_status: {type: string, enum: item_status}
+
+  shipment_events:
+    primary_key: event_id
+    columns:
+      event_id: {type: string}
+      shipment_id: {type: string, fk: shipments.shipment_id}
+      event_type: {type: string, enum: shipment_event}
+      location: {type: string}
+      event_at: {type: timestamp}
+
+  returns:
+    primary_key: return_id
+    columns:
+      return_id: {type: string}
+      item_id: {type: string, fk: order_items.item_id}
+      reason: {type: string, enum: return_reason}
+      status: {type: string, enum: return_status}
+      label_created_at: {type: timestamp}
+      warehouse_scanned_at: {type: timestamp, nullable: true}
+
+  refunds:
+    primary_key: refund_id
+    columns:
+      refund_id: {type: string}
+      order_id: {type: string, fk: orders.order_id}
+      return_id: {type: string, fk: returns.return_id, nullable: true}
+      amount: {type: double}
+      method: {type: string, enum: refund_method}
+      status: {type: string, enum: refund_status}
+      initiated_at: {type: timestamp}
+      completed_at: {type: timestamp, nullable: true}
+      failure_reason: {type: string, nullable: true}
+
+  payments:
+    primary_key: payment_id
+    columns:
+      payment_id: {type: string}
+      order_id: {type: string, fk: orders.order_id}
+      method_token: {type: string}
+      last4: {type: string}
+      status: {type: string, enum: payment_status}
+
+  loyalty:
+    primary_key: customer_id
+    columns:
+      customer_id: {type: string, fk: customers.customer_id}
+      points: {type: int}
+      tier: {type: string, enum: customer_tier}
+      last_adjustment_at: {type: timestamp, nullable: true}
+
+  support_contacts:
+    primary_key: contact_id
+    columns:
+      contact_id: {type: string}
+      customer_id: {type: string, fk: customers.customer_id}
+      order_id: {type: string, fk: orders.order_id, nullable: true}
+      channel: {type: string, enum: contact_channel}
+      topic: {type: string}
+      notes: {type: string, nullable: true}       # free text; untrusted (see scenario S20)
+      created_at: {type: timestamp}
+      resolution: {type: string, nullable: true}
+
+  config:
+    primary_key: key
+    columns:
+      key: {type: string}
+      value: {type: string}
+
+  # Product catalog (generator/catalog.py), for recommendations. On Databricks these live in their own schema,
+  # <catalog>.catalog (databricks/catalog_tables.sql), not in bronze/silver: the customer-service tables are
+  # unchanged.
+  products:
+    primary_key: product_id
+    databricks_schema: catalog
+    columns:
+      product_id: {type: string}
+      title: {type: string}
+      category: {type: string, enum: product_category}
+      description: {type: string}
+      material: {type: string}
+      fit: {type: string, nullable: true}          # null for accessories
+      season: {type: string, enum: season}
+      list_price: {type: double}                   # current price; order_items.price is what was paid
+      currency: {type: string}
+      active: {type: bool}                         # false = discontinued, never recommended
+
+  product_variants:
+    primary_key: sku
+    databricks_schema: catalog
+    columns:
+      sku: {type: string}
+      product_id: {type: string, fk: products.product_id}
+      color: {type: string}
+      size: {type: string, nullable: true}         # null = one size
+      stock: {type: int}                           # units available; 0 = sold out
+
+  product_relations:
+    primary_key: relation_id
+    databricks_schema: catalog
+    columns:
+      relation_id: {type: string}
+      product_id: {type: string, fk: products.product_id}
+      related_product_id: {type: string, fk: products.product_id}
+      relation: {type: string, enum: product_relation}
+      strength: {type: double}                     # 0-1, hand-set: how strongly to suggest it
+
+  # Stylist data (Everly companion plan P4), same catalog schema; no customer data.
+  # N1: products staged for launch (products.active = false until launched; they have stock).
+  product_launches:
+    primary_key: launch_id
+    databricks_schema: catalog
+    columns:
+      launch_id: {type: string}
+      product_id: {type: string, fk: products.product_id}
+      planned_at: {type: timestamp}                # when the merchandiser plans to launch it
+      headline: {type: string}
+
+  # N3: 1-3 style tags per product from a fixed list.
+  product_styles:
+    primary_key: style_id
+    databricks_schema: catalog
+    columns:
+      style_id: {type: string}
+      product_id: {type: string, fk: products.product_id}
+      style: {type: string, enum: style_tag}
+
+  # N4: the family of every colour used by a variant, and how well two families go together.
+  colour_families:
+    primary_key: color
+    databricks_schema: catalog
+    columns:
+      color: {type: string}
+      family: {type: string, enum: colour_family}
+
+  colour_harmony:
+    primary_key: harmony_id
+    databricks_schema: catalog
+    columns:
+      harmony_id: {type: string}
+      family: {type: string, enum: colour_family}
+      other_family: {type: string, enum: colour_family}   # family <= other_family: one row per unordered pair
+      strength: {type: double}                     # 0-1

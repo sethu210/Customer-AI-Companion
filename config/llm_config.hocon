@@ -1,0 +1,14 @@
+{
+    "llm_config": {
+        # OpenRouter free model (zero cost, supports tool calling).
+        # To let OpenRouter pick a free model per request instead, use "openrouter/free".
+        "class": "openrouter",
+        "model_name": "nvidia/nemotron-3.5-super-vl:free",
+
+        # Optional overrides from the environment, e.g. for the scripted test model that needs no provider:
+        #   NS_LLM_CLASS=evaluation.scripted_llm.ScriptedSupportLlm  NS_LLM_MODEL=scripted
+        # (scripts/eval.ps1 -Scripted sets both). Unset = the OpenRouter model above.
+        "class": ${?NS_LLM_CLASS},
+        "model_name": ${?NS_LLM_MODEL}
+    }
+}

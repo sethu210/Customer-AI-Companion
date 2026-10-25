@@ -1,0 +1,27 @@
+id: S10
+title: Shipment has had no carrier movement for 6 days
+phase: stuck
+customers:
+  - id: CUST-S10
+    name: Benjamin Clarke
+    tier: silver
+    created_days_ago: 350
+    identities:
+      - {channel: web_session}
+      - {channel: phone}
+    orders:
+      - placed_days_ago: 9
+        items:
+          - {key: shoes, title: Trail Running Shoes, category: footwear, color: black, size: "9", price: 105.00}
+        shipments:
+          - carrier: FedEx
+            location: Memphis, TN
+            events: [[label_created, 8], [picked_up, 8], [in_transit, 6]]
+expected:
+  customer: CUST-S10
+  channel: web_session
+  question: "My shoes haven't moved in almost a week."
+  matching_items: [ITM-S10-1-1]
+  diagnosis: [stuck_shipment]
+  action: {type: open_carrier_trace, decision: ALLOW}
+  answer_mentions: [last scan in Memphis 6 days ago, opened a trace with FedEx, offers reship if not resolved]

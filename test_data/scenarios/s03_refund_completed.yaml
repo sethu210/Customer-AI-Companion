@@ -1,0 +1,35 @@
+id: S03
+title: Refund completed a week ago; customer has not seen it on the card yet
+phase: read
+customers:
+  - id: CUST-S03
+    name: Hannah Becker
+    tier: silver
+    created_days_ago: 700
+    identities:
+      - {channel: web_session}
+      - {channel: email}
+    orders:
+      - placed_days_ago: 30
+        payment: {last4: "4242"}
+        items:
+          - {key: shirt, title: Oxford Shirt, category: shirts, color: blue, size: M, price: 55.00}
+        shipments:
+          - events: [[label_created, 29], [picked_up, 29], [in_transit, 28], [out_for_delivery, 26], [delivered, 26]]
+        returns:
+          - item: shirt
+            reason: wrong_size
+            label_created_days_ago: 20
+            warehouse_scanned_days_ago: 12
+            status: inspected
+            refund: {status: completed, initiated_days_ago: 12, completed_days_ago: 7}
+    support_contacts:
+      - {channel: chat, topic: return label request, days_ago: 20, order: 1, resolution: label emailed}
+expected:
+  customer: CUST-S03
+  channel: email
+  question: "I still don't see my refund for the shirt."
+  matching_items: [ITM-S03-1-1]
+  diagnosis: []
+  action: none
+  answer_mentions: [refund completed 7 days ago, "$55.00", card ending 4242, bank posting can take 5-10 business days]

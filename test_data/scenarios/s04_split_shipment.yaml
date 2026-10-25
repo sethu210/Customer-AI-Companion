@@ -1,0 +1,28 @@
+id: S04
+title: Split shipment - chinos delivered, rain jacket still in transit
+phase: read
+customers:
+  - id: CUST-S04
+    name: Grace Kim
+    tier: standard
+    created_days_ago: 300
+    identities:
+      - {channel: web_session}
+    orders:
+      - placed_days_ago: 6
+        items:
+          - {key: chinos, title: Slim Chino Pants, category: pants, color: khaki, size: "32", price: 59.00}
+          - {key: rain, title: Rain Shell Jacket, category: outerwear, color: yellow, size: S, price: 98.00}
+        shipments:
+          - items: [chinos]
+            events: [[label_created, 5], [picked_up, 5], [in_transit, 4], [out_for_delivery, 3], [delivered, 3]]
+          - items: [rain]
+            events: [[label_created, 4], [picked_up, 3], [in_transit, 2]]
+expected:
+  customer: CUST-S04
+  channel: web_session
+  question: "I only got half my order. Where's the rest?"
+  matching_items: [ITM-S04-1-2]
+  diagnosis: []
+  action: none
+  answer_mentions: [order shipped in two packages, chinos delivered, rain jacket in transit]

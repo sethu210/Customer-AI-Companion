@@ -1,0 +1,52 @@
+id: S15
+title: Low-value stuck refund, but the account is flagged for a high refund rate - escalate
+phase: policy
+customers:
+  - id: CUST-S15
+    name: Victor Lang
+    tier: standard
+    created_days_ago: 420
+    risk_flags: [high_refund_rate, fraud_review]
+    identities:
+      - {channel: web_session}
+      - {channel: email}
+    orders:
+      - placed_days_ago: 200
+        items:
+          - {key: shoes, title: Trail Running Shoes, category: footwear, color: blue, size: "11", price: 129.00}
+        shipments:
+          - events: [[label_created, 199], [picked_up, 199], [in_transit, 198], [out_for_delivery, 196], [delivered, 196]]
+        returns:
+          - {item: shoes, reason: damaged, label_created_days_ago: 193, warehouse_scanned_days_ago: 189, status: inspected,
+             refund: {status: completed, initiated_days_ago: 189, completed_days_ago: 187}}
+      - placed_days_ago: 150
+        items:
+          - {key: coat, title: Wool Overcoat, category: outerwear, color: navy, size: L, price: 259.00}
+        shipments:
+          - events: [[label_created, 149], [picked_up, 149], [in_transit, 148], [out_for_delivery, 146], [delivered, 146]]
+        returns:
+          - {item: coat, reason: not_as_described, label_created_days_ago: 143, warehouse_scanned_days_ago: 139, status: inspected,
+             refund: {status: completed, initiated_days_ago: 139, completed_days_ago: 137}}
+      - placed_days_ago: 100
+        items:
+          - {key: puffer, title: Classic Puffer Jacket, category: outerwear, color: green, size: L, price: 149.00}
+        shipments:
+          - events: [[label_created, 99], [picked_up, 99], [in_transit, 98], [out_for_delivery, 96], [delivered, 96]]
+        returns:
+          - {item: puffer, reason: damaged, label_created_days_ago: 93, warehouse_scanned_days_ago: 89, status: inspected,
+             refund: {status: completed, initiated_days_ago: 89, completed_days_ago: 87}}
+      - placed_days_ago: 20
+        items:
+          - {key: shirt, title: Oxford Shirt, category: shirts, color: white, size: L, price: 45.00}
+        shipments:
+          - events: [[label_created, 19], [picked_up, 19], [in_transit, 18], [out_for_delivery, 16], [delivered, 16]]
+        returns:
+          - {item: shirt, reason: damaged, label_created_days_ago: 12, warehouse_scanned_days_ago: 7}
+expected:
+  customer: CUST-S15
+  channel: web_session
+  question: "Refund my shirt now, it's been a week."
+  matching_items: [ITM-S15-4-1]
+  diagnosis: [stuck_refund]
+  action: {type: initiate_refund, amount: 45.00, decision: ESCALATE}
+  answer_mentions: [return received, refund being reviewed by a specialist, does not mention fraud flags]

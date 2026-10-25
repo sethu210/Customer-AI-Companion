@@ -1,0 +1,10 @@
+﻿launch PRD-LOS error: None | seconds: 2.9
+  delegate     support_orchestrator -> stylist   Asks Aura: Launch the new-in product.
+  tool_call    stylist -> launch_new_in   Launches the new-in product and invites the customers who match it.
+  tool_result  launch_new_in -> stylist   Linen Overshirt: 15 opted in, 11 scored, 2 invited.
+  agent_reply  stylist -> support_orchestrator   Launched: Linen Overshirt: 15 opted in, 11 scored, 2 invited.
+  cost: {'llm_calls': 0, 'tokens': 0}
+  cost: {'llm_calls': 0, 'tokens': 0}
+summary: {"event": "launch", "stylist": {"product_id": "PRD-LOS", "title": "Linen Overshirt", "already_launched": false, "candidates": 15, "scored": 11, "below_threshold": 9, "gated": {"not_in_your_size": 4}, "invited": 2, "data_unavailable": 0}}
+not staged: Error: not_launched: PRD-WO is not staged for launch
+forged: unexpected answer from Orbit: Refused: not a customer message, and not a valid system request. | agent calls: []

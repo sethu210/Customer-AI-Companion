@@ -1,0 +1,164 @@
+# Policy for write actions taken by the customer_service agent.
+# Read by coded_tools/customer_service/policy.py. Decisions are deterministic; the LLM never decides.
+# Thresholds must match test_data/generator/settings.yaml (checked by tests/test_policy.py).
+{
+    # "Today" for every rule. Must equal config.reference_date in the data; if the data and this file disagree,
+    # policy.check_data_reference reports a mismatch and write actions are refused.
+    "reference_date": "2026-10-16",
+
+    "return_window_days": 30,
+    "auto_refund_max": 150.00,          # refunds/credits above this need human approval
+    # Cumulative caps on one customer's automatic refunds (initiate, retrigger, reissue as store credit): a refund
+    # that would take the total of the last 24 hours or 30 days above these needs human approval too.
+    "auto_refund_daily_max": 300.00,
+    "auto_refund_30d_max": 600.00,
+    "stuck_refund_days": 5,
+    "stuck_shipment_days": 4,
+
+    # auth_level values allowed to trigger write actions; "weak" (phone-number match) is read-only.
+    "write_auth_levels": ["strong", "medium"],
+
+    # Channels that may never change anything, whatever the sign-in: a request for a change is answered, recorded
+    # and refused (confirm_in_channel). E2: a personal AI assistant reads only; changes are confirmed in ACME Retail
+    # itself (E4).
+    "read_only_channels": ["assistant"],
+
+    # Personal AI assistants (channel "assistant", assistant_gateway/). The customer grants an assistant access
+    # with OAuth consent; the token maps to the customer, a sign-in level and scopes, in code.
+    "assistant": {
+        # scope -> MCP tools it allows. request_changes is for E4 (confirm link); no tool uses it yet.
+        "scopes": {
+            "read_status": ["get_case_status", "get_order_status", "ask_support", "get_answer"],
+            "request_changes": []
+        },
+        # OAuth client ids ACME Retail has checked; any other assistant is shown as "not verified" on the consent page.
+        "verified_clients": [],
+        "token_ttl_days": 30,
+        "auth_code_ttl_s": 300,
+        "calls_per_minute": 30,          # per token, all tools together
+        "asks_per_hour": 20,             # ask_support per token: each one is a full agent turn
+        "ask_timeout_s": 900,
+        "answers_kept_hours": 24
+    },
+
+    # Resolution Guardian (E3, coded_tools/customer_service/guardian.py): follows each unresolved issue after the
+    # conversation until the business outcome is verified. It only sends updates and hands off to people: it never
+    # retries or changes anything itself (decision 5). Updates go to outbox.jsonl (decision 6).
+    "guardian": {
+        "check_every_hours": 6,
+        # What the Guardian waits for -> hours until it hands the issue to a person (counted from the start of the wait;
+        # progress, such as a new carrier scan, starts the count again).
+        "sla_hours": {"review_decided": 48, "handoff_resolved": 72, "return_received": 336,
+                      "refund_completed": 168, "parcel_delivered": 144},
+        # No movement for this long -> one update explaining the delay (the stuck rules: stuck_refund_days,
+        # stuck_shipment_days). Counted from the last activity in the data, or from the action the agents took.
+        "delay_hours": {"refund_completed": 120, "parcel_delivered": 96},
+        # A completion the order timeline does not confirm is not trusted; after this many checks a person looks.
+        "unconfirmed_checks_before_handoff": 2,
+        # Updates per customer per day; more wait for the next day (a newer update of the same issue replaces a
+        # waiting one).
+        "max_updates_per_day": 2,
+        # No updates from 21:00 to 08:00 (the Guardian's clock, UTC): they wait until the morning.
+        "quiet_hours": [21, 8]
+    },
+
+    # Any of these risk flags sends the request to a specialist instead of acting automatically.
+    "escalate_risk_flags": ["fraud_review", "high_refund_rate", "chargeback"],
+
+    # Customer must explicitly agree in an earlier message before these run.
+    "requires_customer_confirmation": ["reissue_refund_store_credit", "cancel_order", "create_return"],
+
+    # Multi-agent network: which specialist domain may propose which action. The action layer re-checks this
+    # against the issue the action is filed under, so an agent cannot act outside its own capability.
+    "action_domains": {
+        "order_delivery": ["open_carrier_trace", "cancel_order"],
+        "returns_refunds": ["create_return", "initiate_refund", "retrigger_refund", "reissue_refund_store_credit"],
+        "payments_billing": ["open_billing_review"],
+        "loyalty_account": []
+    },
+
+    # Actions that are never automatic: they always go to a team (decision ESCALATE). The payment records hold
+    # no amounts or processor data, so a billing claim (e.g. a double charge) can only be checked by a person.
+    "always_review_actions": ["open_billing_review"],
+
+    # Data reads (coded_tools/customer_service/results.py): timeouts and transient errors are retried at most
+    # max_retries times, waiting retry_backoff_s * attempt between tries; each attempt is cut off at tool_timeout_s.
+    "max_retries": 2,
+    "retry_backoff_s": 1.0,
+    "tool_timeout_s": 90,
+
+    # Product recommendations (coded_tools/customer_service/recommendations.py): read-only, on the customer's
+    # request only. The engine decides what is offered; the model only words it.
+    "recommendations": {
+        "max_items": 3,
+        # Never offered to these sign-ins (user decision 2026-10-20: not for weak, phone-number matches).
+        "allowed_auth_levels": ["strong", "medium"],
+        # Score = weight of the reason x its strength (relation strength, or share of orders bought together).
+        "weights": {"replacement": 1.0, "complement": 0.8, "alternative": 0.6, "upgrade": 0.5,
+                    "bought_together": 0.4,
+                    # Added when a product is in stock in a colour the customer said they like (companion memory).
+                    "liked_colour": 0.1},
+        # "Bought together" counts only from this many shared orders and this share of the product's orders.
+        "min_orders_together": 5,
+        "min_together_share": 0.15,
+        # A category the customer returned this often is not suggested again (replacements excepted).
+        "skip_category_after_returns": 2,
+        # Catalog reads are the same for everyone: cached this long.
+        "catalog_cache_s": 600
+    },
+
+    # Everly, the customer's companion (coded_tools/customer_service/companion.py, companion plan P1): one per
+    # customer, its settings and consents in the local companion store, a profile derived by code from the data.
+    "companion": {
+        "name": "Everly",                # the same for every customer (decision C2); the customer may rename it
+        "retailer": "ACME Retail",
+        "max_name_length": 24,
+        # What a new companion starts with. Stylist invites and marketing are opt-in (C3); service updates are on,
+        # as the Guardian's updates were before (the customer can switch them off).
+        "default_consents": {"service_updates": true, "stylist_mode": false, "marketing": false},
+        # Profile digest given to the front agent each turn (P2): at most this many characters (~300 tokens).
+        "digest_max_chars": 1200,
+        "recall_cases": 5,               # closed cases recalled in the digest, newest first
+        "new_updates": 3,                # updates sent since the customer's last message, in the digest and greeting
+        "favourite_colours": 3,          # colours kept at least twice, most often first
+        "top_categories": 3,
+        "top_styles": 3,                 # style tags of kept items, seen on at least two of them (stylist data, P4)
+        "top_colour_families": 2,        # colour families of kept items, seen at least twice
+        "profile_cache_s": 120,          # the derived profile is rebuilt from the data after this long
+        # Memory (P3): preferences the customer states and then confirms in a later message (remember_preference).
+        "memory": {
+            "max_value_chars": 60,
+            "max_active": 12,            # more are refused: the customer can forget one first
+            "pending_hours": 24,         # a question not answered within this time is dropped
+            "keep_days": 365,            # likes, avoids and sizes
+            "occasion_keep_days": 120    # an occasion is short-lived
+        }
+    },
+
+    # Personal Stylist Mode (companion plan P5, coded_tools/customer_service/stylist.py): when a staged product is
+    # launched, customers who switched Stylist Mode on are checked against hard gates and scored 0-100 from their own
+    # data; only a score of at least min_affinity with an item they own to name gets an invite (a fixed template).
+    # The 80 is a rule, not a probability: it can only be calibrated with real feedback.
+    "stylist": {
+        "min_affinity": 80,
+        # Points per signal (each signal is 0-1): goes with an item they kept, shares their kept styles, colours that
+        # go with theirs, a category they keep, a price they usually pay, the right season for the launch.
+        "weights": {"complement": 35, "style": 20, "colour": 15, "category": 10, "price": 10, "season": 10},
+        # "Not for me" on an earlier pick lowers the score of similar launches.
+        "not_for_me_penalty": {"same_category": 25, "shared_styles": 15, "max": 40},
+        "max_invites_per_week": 1,
+        # Of guardian.max_updates_per_day (the customer's daily total), this many stay free for service updates.
+        "reserve_for_service": 1,
+        "invite_valid_days": 3,          # an invite still waiting after this long is dropped
+        # Months (1-12) in which a season counts as right for a launch; other months score season_off.
+        "season_months": {"cold_weather": [10, 11, 12, 1, 2], "wet_weather": [3, 4, 5, 9, 10, 11],
+                          "warm_weather": [5, 6, 7, 8], "spring_fall": [3, 4, 5, 9, 10, 11],
+                          "all_year": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+        "season_off": 0.3
+    },
+
+    # shadow: log decisions and hand ALLOWed actions to a person instead of executing them.
+    # live:   execute ALLOWed actions against the system of record (a mock for now).
+    # Overridden by the ACTION_MODE environment variable.
+    "action_mode": "shadow"
+}

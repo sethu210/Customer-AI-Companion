@@ -1,0 +1,13 @@
+﻿tick error: None | seconds: 2.47
+  delegate     support_orchestrator -> guardian   Asks Guardian: Run the follow-up checks that are due.
+  tool_call    guardian -> run_follow_ups   Checks the follow-ups that are due (Orbit's clock).
+  tool_result  run_follow_ups -> guardian   0 checked, 0 update(s), 0 hand-off(s).
+  agent_reply  guardian -> support_orchestrator   Follow-ups: 0 checked, 0 update(s), 0 hand-off(s).
+  delegate     support_orchestrator -> stylist   Asks Aura: Send held picks that may go now.
+  tool_call    stylist -> release_picks   Sends held new-in picks that may go now (Orbit's clock).
+  tool_result  release_picks -> stylist   0 sent, 0 expired.
+  agent_reply  stylist -> support_orchestrator   Held picks: 0 sent, 0 expired.
+  cost: {'llm_calls': 0, 'tokens': 0, 'seconds': 0.5197408199310303}
+  cost: {'llm_calls': 0, 'tokens': 0, 'seconds': 0.5197408199310303}
+summary: {"event": "tick", "guardian": {"clock": "2026-10-16T18:00:00Z", "checked": [], "postponed": [], "notices": [], "handoffs": []}, "stylist": {"clock": "2026-10-16T18:00:00Z", "sent": [], "expired": [], "suppressed": []}}
+forged tick error: unexpected answer from Orbit: Refused: not a customer message, and not a valid system request. | events: ['cost', 'cost', 'answer']

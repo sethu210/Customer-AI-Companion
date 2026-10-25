@@ -1,0 +1,47 @@
+product_id,title,category,description,material,fit,season,list_price,currency,active
+PRD-CB,Commuter Backpack,accessories,Water-resistant backpack with a padded laptop sleeve.,water-resistant nylon,,all_year,79.99,USD,True
+PRD-CBC,Classic Baseball Cap,accessories,Six-panel cotton cap with an adjustable strap.,cotton twill,,warm_weather,23.99,USD,True
+PRD-CCC,Cashmere Crew Sweater,knitwear,"Pure cashmere crew neck, our softest sweater.",pure cashmere,regular,cold_weather,174.99,USD,True
+PRD-CCS,Canvas Court Sneakers,footwear,Low-top canvas sneakers for everyday wear.,"cotton canvas, rubber sole",regular,warm_weather,64.99,USD,True
+PRD-CKC,Cable Knit Cardigan,knitwear,Chunky cable-knit cardigan with horn-effect buttons.,wool and cotton blend,relaxed,cold_weather,104.99,USD,True
+PRD-CPJ,Classic Puffer Jacket,outerwear,"Warm, light puffer with a water-repellent shell for everyday winter wear.","recycled polyester shell, synthetic fill",regular,cold_weather,134.99,USD,True
+PRD-CSC,Cashmere Scarf,accessories,"Featherlight pure cashmere scarf, long enough to wrap twice.",pure cashmere,,cold_weather,87.99,USD,False
+PRD-CT,Corduroy Trousers,pants,Wide-wale corduroy trousers.,cotton corduroy,regular,cold_weather,69.99,USD,False
+PRD-CTB,Canvas Tote Bag,accessories,Roomy canvas tote with an inside pocket.,heavy cotton canvas,,all_year,31.99,USD,True
+PRD-DS,Denim Shirt,shirts,Western-style denim shirt with snap buttons.,cotton denim,regular,all_year,57.99,USD,True
+PRD-DTJ,Denim Trucker Jacket,outerwear,Classic trucker jacket in rigid cotton denim.,cotton denim,regular,spring_fall,97.99,USD,True
+PRD-ECT,Essential Crew Tee,shirts,Everyday crew-neck tee in organic cotton.,organic cotton jersey,regular,all_year,21.99,USD,True
+PRD-EDP,Expedition Down Parka,outerwear,Hip-length down parka rated for sub-zero temperatures.,"down fill, ripstop shell",relaxed,cold_weather,289.99,USD,True
+PRD-FHZ,Fleece Half-Zip,activewear,Midweight fleece pullover for cold runs and hikes.,recycled fleece,regular,cold_weather,67.99,USD,True
+PRD-FS,Flannel Shirt,shirts,Brushed cotton flannel shirt in a classic check.,brushed cotton flannel,regular,cold_weather,51.99,USD,True
+PRD-LB,Leather Belt,accessories,Full-grain leather belt with a brushed metal buckle.,full-grain leather,,all_year,37.99,USD,True
+PRD-LCS,Leather Chelsea Boots,footwear,Pull-on chelsea boots with elastic sides and a rubber sole.,suede and leather,regular,all_year,169.99,USD,True
+PRD-LOS,Linen Overshirt,shirts,"Linen-cotton overshirt, a light layer over a tee or a shirt for spring and autumn.",linen and cotton blend,relaxed,spring_fall,74.99,USD,False
+PRD-LRT,Lightweight Running Tee,activewear,Quick-dry running tee with reflective details.,quick-dry polyester,regular,all_year,32.99,USD,True
+PRD-LS,Linen Shirt,shirts,Breathable linen shirt for warm days.,pure linen,relaxed,warm_weather,59.99,USD,True
+PRD-LW,Leather Wallet,accessories,Slim bifold wallet in full-grain leather.,full-grain leather,,all_year,47.99,USD,True
+PRD-MCS,Merino Crew Sweater,knitwear,Fine-gauge merino crew neck that layers under jackets and coats.,merino wool,regular,cold_weather,81.99,USD,True
+PRD-MHZ,Merino Half-Zip,knitwear,Merino half-zip pullover with a stand-up collar.,merino wool,regular,cold_weather,94.99,USD,True
+PRD-MPL,Merino Polo,knitwear,"Fine merino knitted polo, smart without a tie.",merino wool,regular,spring_fall,81.99,USD,False
+PRD-MWS,Merino Wool Scarf,accessories,"Long merino scarf, warm without bulk.",merino wool,,cold_weather,41.99,USD,True
+PRD-OS,Oxford Shirt,shirts,Button-down oxford shirt that works with chinos or jeans.,cotton oxford cloth,regular,all_year,51.99,USD,True
+PRD-PRJ,Packable Rain Jacket,outerwear,Featherweight rain jacket that packs into its own pocket.,lightweight waterproof nylon,regular,wet_weather,69.99,USD,True
+PRD-PRS,Performance Running Socks,activewear,"Cushioned, blister-resistant running socks.",cushioned synthetic blend,,all_year,13.99,USD,True
+PRD-PT,Pique Polo,shirts,Cotton pique polo with a two-button placket.,cotton pique,regular,warm_weather,41.99,USD,True
+PRD-QV,Quilted Vest,outerwear,Light quilted vest for layering in between seasons.,recycled polyester fill,regular,spring_fall,74.99,USD,True
+PRD-RCP,Relaxed Chino Pants,pants,Relaxed-fit chinos with more room through the leg.,cotton twill,relaxed,all_year,57.99,USD,True
+PRD-RRS,Road Running Shoes,footwear,Responsive road running shoes for daily miles.,engineered mesh,regular,all_year,117.99,USD,True
+PRD-RSJ,Rain Shell Jacket,outerwear,"Fully waterproof, breathable shell with taped seams and an adjustable hood.",waterproof nylon,regular,wet_weather,99.99,USD,True
+PRD-SCP,Slim Chino Pants,pants,"Slim-fit chinos with a little stretch, smart enough for the office.",stretch cotton twill,slim,all_year,57.99,USD,True
+PRD-SLF,Suede Loafers,footwear,Unlined suede penny loafers that dress up chinos or wool trousers.,"suede, leather sole",regular,all_year,164.99,USD,False
+PRD-SLJ,Straight Leg Jeans,pants,Straight-leg jeans in mid-weight denim.,cotton denim,straight,all_year,71.99,USD,True
+PRD-SRS,Striped Rugby Shirt,shirts,Heavyweight striped rugby shirt.,heavy cotton jersey,regular,spring_fall,61.99,USD,False
+PRD-TB,Thermal Beanie,accessories,Soft rib-knit beanie lined for cold days.,merino blend rib knit,,cold_weather,22.99,USD,True
+PRD-TFJ,Trail Fleece Jacket,activewear,Grid fleece mid-layer for hikes and cold runs.,recycled grid fleece,regular,cold_weather,94.99,USD,False
+PRD-TG,Touchscreen Gloves,accessories,Knit gloves that work with phone screens.,knit with conductive fingertips,,cold_weather,29.99,USD,True
+PRD-TJ,Travel Joggers,activewear,Wrinkle-resistant joggers with zip pockets.,stretch technical fabric,tapered,all_year,61.99,USD,True
+PRD-TRS,Trail Running Shoes,footwear,Grippy trail shoes with a cushioned midsole for mixed terrain.,"mesh upper, rubber lug sole",regular,all_year,117.99,USD,True
+PRD-WFJ,Waxed Field Jacket,outerwear,Waxed cotton field jacket with four bellows pockets and a corduroy collar.,"waxed cotton, tartan lining",regular,spring_fall,239.99,USD,False
+PRD-WHB,Waterproof Hiking Boots,footwear,Waterproof leather hiking boots with ankle support.,leather with waterproof membrane,regular,wet_weather,157.99,USD,True
+PRD-WO,Wool Overcoat,outerwear,Knee-length tailored overcoat in a soft wool blend.,wool blend,tailored,cold_weather,269.99,USD,True
+PRD-WTP,Wool Trousers,pants,Tailored wool trousers that pair with an overcoat.,wool blend,tailored,cold_weather,111.99,USD,True

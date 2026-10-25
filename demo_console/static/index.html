@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Everly from ACME Retail · Demo</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+
+<!-- Everly's companion mark: a speech bubble with a spark (the retailer is shown as a wordmark next to it) -->
+<template id="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M12 3C6.9 3 3 6.4 3 10.6c0 2.3 1.2 4.4 3.1 5.8L5.4 20.4c-.1.5.4.9.9.6l4-2.2c.6.1 1.1.1 1.7.1 5.1 0 9-3.4 9-7.6S17.1 3 12 3z" opacity=".95"/><path fill="var(--accent)" d="M12 6.6l1.1 2.9 2.9 1.1-2.9 1.1-1.1 2.9-1.1-2.9-2.9-1.1 2.9-1.1z"/></svg></template>
+
+<header class="top">
+  <div class="brand"><div class="logo" data-mark></div><div><div class="brand-name"><span id="brandName">Everly</span>
+    <span class="brand-from" id="brandFrom" hidden></span></div>
+    <div class="brand-tag" id="brandTag"></div></div></div>
+  <span class="spacer"></span>
+  <span class="muted" id="topNote" style="font-size:12px">Simulated website sign-in for demos</span>
+  <span class="pill" id="whoPill" hidden><span class="dot"></span><span id="whoText"></span></span>
+  <button class="rec" id="recBtn" hidden title="Record this conversation as a take"><span class="rdot"></span><span id="recText">Record</span></button>
+  <label class="switch" id="showAgentsBox" hidden><input type="checkbox" id="showAgents" checked> Show agents</label>
+  <button class="btn" id="newChat" hidden>New conversation</button>
+  <button class="btn" id="switchCust" hidden>Switch customer</button>
+  <button class="btn" id="themeBtn" title="Light or dark">Theme</button>
+</header>
+
+<!-- ======================= SIGN-IN (simulated) ======================= -->
+<section id="login">
+  <h1>Who is contacting support?</h1>
+  <div class="muted">Simulated website sign-in for demos. Pick a customer: the support agents receive only what the
+    website would send for a signed-in visitor, never a customer id typed in by hand.</div>
+  <div class="login-grid">
+    <div>
+      <div class="toolbar">
+        <input id="search" placeholder="Search name, customer id or scenario…" autocomplete="off">
+        <button class="chip on" data-kind="all">All</button>
+        <button class="chip" data-kind="scenario">Demo scenarios</button>
+        <button class="chip" data-kind="other">Other customers</button>
+      </div>
+      <div class="cards" id="cards"><div class="empty">Loading customers…</div></div>
+      <div class="more"><button class="btn" id="moreBtn" hidden>Show more</button></div>
+    </div>
+    <aside class="signin">
+      <div class="empty" id="signinEmpty">Select a customer to sign in.</div>
+      <div id="signinForm" hidden>
+        <div class="who"><div class="avatar" id="sAvatar"></div><div><h2 id="sName"></h2><div class="muted mono" id="sId"></div></div></div>
+        <div style="margin-top:12px;font-weight:600">Sign in via</div>
+        <div id="channels"></div>
+        <div class="gw"><div class="lbl">The website gateway will send (sly_data)</div><div class="mono" id="gwPreview"></div></div>
+        <div class="note">The agents resolve this to a customer in code (intake_identity): the model never sees or
+          chooses the customer id.</div>
+        <button class="btn primary" id="signinBtn" style="width:100%;margin-top:12px">Sign in and open chat</button>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ======================= CONSOLE ======================= -->
+<section id="console" hidden>
+  <div class="layout" id="layout">
+    <div class="pane">
+      <div class="pane-h"><div class="who"><div class="avatar" id="cAvatar"></div><div><h3 id="cName"></h3>
+        <div class="muted" style="font-size:12px" id="cSub"></div></div></div></div>
+      <!-- My Companion (companion plan P7): what the customer sees and controls -->
+      <div class="tabs ctabs" id="ctabs" role="tablist" aria-label="My Companion">
+        <button class="on" data-ctab="chat">Chat</button><button data-ctab="updates">Updates</button>
+        <button data-ctab="stylist">Stylist</button><button data-ctab="know">What I know</button>
+        <button data-ctab="settings">Settings</button></div>
+      <div class="ctab on" id="ctab-chat">
+        <div class="msgs" id="msgs"></div>
+        <div class="suggest" id="suggest"></div>
+        <form class="composer" id="composer"><input id="input" placeholder="Type a message as the customer…" autocomplete="off">
+          <button class="btn primary" id="sendBtn">Send</button></form>
+      </div>
+      <div class="ctab" id="ctab-updates"><div class="casebox mc" id="mcUpdates"></div></div>
+      <div class="ctab" id="ctab-stylist"><div class="casebox mc" id="mcStylist"></div></div>
+      <div class="ctab" id="ctab-know"><div class="casebox mc" id="mcKnow"></div></div>
+      <div class="ctab" id="ctab-settings"><div class="casebox mc" id="mcSettings"></div></div>
+    </div>
+    <div class="pane agents">
+      <div class="pane-h"><h3>Behind the scenes</h3><span class="spacer"></span>
+        <div class="tabs" id="tabs"><button class="on" data-tab="activity">Agent activity</button>
+          <button data-tab="case">Case</button><button data-tab="inbox">Inbox <span class="count" id="inboxCount" hidden></span></button>
+          <button data-tab="session">Session data</button><button data-tab="launches">Launches</button></div></div>
+      <div class="agents-body">
+        <div class="tab on" id="tab-activity">
+          <div class="map" id="mapBox"><svg id="map" viewBox="0 0 770 270" role="img" aria-label="Agent network"></svg>
+            <div class="legend">Lines light up while one agent talks to another · labels show the tool in use · dashed: code
+              only, no model</div>
+            <div class="bglane" id="bgLane"></div></div>
+          <div class="tl-h"><b style="font-size:13px">Conversation between agents</b><span class="spacer"></span>
+            <label class="switch"><input type="checkbox" id="showMap" checked> Map</label>
+            <label class="switch"><input type="checkbox" id="showTools" checked> Tool calls</label>
+            <label class="switch"><input type="checkbox" id="technical"> Technical view</label></div>
+          <div class="timeline" id="timeline"><div class="empty">Send a message to see the agents work.</div></div>
+        </div>
+        <div class="tab" id="tab-case"><div class="casebox" id="casebox"><div class="empty">No case yet.</div></div></div>
+        <div class="tab" id="tab-inbox"><div class="casebox" id="inboxbox"><div class="empty">Updates the customer receives appear here.</div></div></div>
+        <div class="tab" id="tab-session"><div class="casebox" id="sessionbox"></div></div>
+        <div class="tab" id="tab-launches"><div class="casebox" id="launchbox"><div class="empty">Loading launches…</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- replay overlays (video renderer) -->
+<div class="overlay" id="overlay"><div class="cardbox" id="cardbox"></div></div>
+<div class="caption" id="caption"></div>
+<div class="subtitle" id="subtitle"></div>
+<div class="clock" id="clock" hidden></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

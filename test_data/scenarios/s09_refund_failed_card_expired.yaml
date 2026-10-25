@@ -1,0 +1,33 @@
+id: S09
+title: Refund failed because the original card expired
+phase: stuck
+customers:
+  - id: CUST-S09
+    name: Chloe Martin
+    tier: standard
+    created_days_ago: 800
+    identities:
+      - {channel: web_session}
+      - {channel: email}
+    orders:
+      - placed_days_ago: 35
+        payment: {last4: "1881"}
+        items:
+          - {key: sweater, title: Merino Crew Sweater, category: knitwear, color: red, size: M, price: 68.00}
+        shipments:
+          - events: [[label_created, 34], [picked_up, 34], [in_transit, 33], [out_for_delivery, 31], [delivered, 31]]
+        returns:
+          - item: sweater
+            reason: changed_mind
+            label_created_days_ago: 25
+            warehouse_scanned_days_ago: 18
+            status: inspected
+            refund: {status: failed, initiated_days_ago: 18, failure_reason: card_expired}
+expected:
+  customer: CUST-S09
+  channel: web_session
+  question: "Why haven't I got my refund for the red sweater?"
+  matching_items: [ITM-S09-1-1]
+  diagnosis: [refund_failed]
+  action: {type: reissue_refund, method: store_credit, amount: 68.00, decision: ALLOW, requires_customer_confirmation: true}
+  answer_mentions: [refund to card ending 1881 failed - card expired, offers store credit or contacting bank]
