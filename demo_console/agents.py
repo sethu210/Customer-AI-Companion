@@ -1,5 +1,5 @@
 """
-The agents of support_multi_agent (registries/customer_service/support_multi_agent.hocon) as the demo shows them,
+The agents of customer-ai-companion (registries/customer_service/customer-ai-companion.hocon) as the demo shows them,
 and one-line plain-English summaries of each tool call and result. Summaries only describe; the full arguments
 and results are always kept next to them.
 """
@@ -8,7 +8,7 @@ from typing import Any
 from typing import Callable
 
 FRONT = "support_orchestrator"
-NETWORK_PATH = "customer_service/support_multi_agent"
+NETWORK_PATH = "customer_service/customer-ai-companion"
 
 # name -> (display name, role); the order is the order on the map. Display names are shown only in the demo (the
 # agent ids in the network are unchanged, and the customer never sees agent names: to the customer the whole team

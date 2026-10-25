@@ -218,7 +218,7 @@ th { color: var(--muted); font-weight: 500; }
 <!-- ======================= CONSOLE ======================= -->
 <section id="console">
   <header class="top">
-    <div class="brand">Customer support<small>multi-agent demo · support_multi_agent</small></div>
+    <div class="brand">Customer support<small>multi-agent demo · customer-ai-companion</small></div>
     <span class="spacer"></span>
     <span class="pill" id="whoPill"><span class="dot"></span><span id="whoText"></span></span>
     <label class="switch"><input type="checkbox" id="showAgents" checked> Show agents</label>
@@ -299,7 +299,7 @@ const CHANNEL_INFO = {
 };
 const CLS_LABEL = { info: "Answer", action: "Fix it", deny: "Explain no", escalate: "Hand to a person", identity: "Not identified", bg: "Free form" };
 
-// ------------------------------------------------------------------ agents (support_multi_agent.hocon)
+// ------------------------------------------------------------------ agents (customer-ai-companion.hocon)
 // x/y: top-left of each node in the 720x270 map; tool badges appear to the right of the specialist column
 const AGENTS = {
   customer:               { label: "Customer",           sub: "chat",                         color: "--a-cust",    x: 10,  y: 114 },

@@ -82,7 +82,7 @@ changed (read-only, no new action)._
     review on the case — no risk flags);
   - the result is filed as tool evidence on the issue (with SKUs, for Phase 4 scoring); the model gets the same
     result **without SKUs** (colours and sizes only) and never stock numbers.
-- Network (`support_multi_agent.hocon`, lean regenerated): intake knows the `shopping` area ("never create it
+- Network (`customer-ai-companion.hocon`, lean regenerated): intake knows the `shopping` area ("never create it
   unless they ask"); orchestrator routes shopping issues to `get_recommendations` after the other issues and has a
   "Product suggestions" section (offer exactly what is returned, in order, with reason, price and listed
   colours/sizes; nothing can be ordered; follow the hint when nothing is returned; then `update_issue

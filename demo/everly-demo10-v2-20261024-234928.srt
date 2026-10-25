@@ -1,0 +1,292 @@
+1
+00:00:00,350 --> 00:00:06,885
+Every retailer wants service that is fast, accurate and personal, without putting money or trust at risk.
+
+2
+00:00:07,335 --> 00:00:14,855
+This is Everly, the AI companion ACME Retail gives each of its customers, built on Cognizant's Neuro SAN framework.
+
+3
+00:00:15,605 --> 00:00:25,340
+We start on ACME's website sign-in, simulated for this demo. Every customer you will see is synthetic test data, stored in a live Databricks workspace.
+
+4
+00:00:25,790 --> 00:00:32,380
+The agents receive only what the website sends for a signed-in visitor, never a customer number typed into the chat.
+
+5
+00:00:33,130 --> 00:00:36,115
+Behind the scenes is a team of ten agents.
+
+6
+00:00:36,565 --> 00:00:43,555
+Orbit, the orchestrator, is the only one that talks to the customer. Anchor handles intake and identity.
+
+7
+00:00:44,005 --> 00:00:51,365
+Swift covers orders and delivery, Echo returns and refunds, Vault payments and billing, and Halo loyalty.
+
+8
+00:00:51,815 --> 00:01:03,255
+Pulse is the product advisor, Aura the personal stylist, Sentinel checks policy and risk, and Guardian follows up after the chat ends. To the customer, it is all simply Everly.
+
+9
+00:01:04,005 --> 00:01:09,180
+What makes this practical to build is Neuro SAN. This is the real network file.
+
+10
+00:01:09,630 --> 00:01:19,635
+Each agent is a block of configuration: a description, its instructions, and the tools it may call. Each tool is a description that points to a Python class.
+
+11
+00:01:20,085 --> 00:01:29,325
+Orbit simply lists the specialists as its tools. Neuro SAN does the orchestration: it routes each request between the agents and returns the results.
+
+12
+00:01:29,775 --> 00:01:38,570
+It also carries private session data, such as the verified customer number, beside the conversation, where the model can neither read it nor change it.
+
+13
+00:01:39,020 --> 00:01:53,410
+The business rules live in ordinary code. This is the policy function: requests from an assistant are read-only, and refunds above a hundred and fifty dollars need a person. Because it is code, it is unit tested, not buried in a prompt.
+
+14
+00:01:53,860 --> 00:01:59,010
+Adding a specialist means adding one more block of configuration, and its tools.
+
+15
+00:01:59,760 --> 00:02:03,090
+First: two questions, one answer.
+
+16
+00:02:03,840 --> 00:02:12,385
+Daniel has signed in on the ACME website. He asks where the money is for the running shoes he returned, and how many loyalty points he has.
+
+17
+00:02:13,135 --> 00:02:17,875
+The model's thinking time is sped up here, so we can watch the agents work.
+
+18
+00:02:18,325 --> 00:02:29,820
+Orbit asks Anchor to open a case. Anchor confirms Daniel's identity from his signed website session, in code, with no security questions, and splits the message into two issues.
+
+19
+00:02:30,270 --> 00:02:40,965
+Echo, the returns specialist, calls its tools. Each one runs a Unity Catalog function on ACME's Databricks SQL warehouse, filtered to the signed-in customer.
+
+20
+00:02:41,415 --> 00:02:50,870
+The records show his return was scanned at the warehouse nine days ago, but no refund was ever started. Meanwhile, Halo reads his loyalty profile.
+
+21
+00:02:51,320 --> 00:02:57,225
+Echo proposes a refund, and Sentinel checks it against ACME's policy and Daniel's account.
+
+22
+00:02:57,975 --> 00:03:08,955
+A hundred and nineteen dollars is within the automatic limit, so it is allowed. The action layer carries out the refund, and reads it back to confirm it, rather than taking the model's word.
+
+23
+00:03:09,405 --> 00:03:14,885
+Daniel gets one clear answer to both questions, and was never asked for an order number.
+
+24
+00:03:15,635 --> 00:03:25,885
+The case record shows both issues, the policy decision, and the executed refund with its reference. Every step is stored as data, so it can be audited later.
+
+25
+00:03:26,635 --> 00:03:29,420
+And here is what that answer was grounded in.
+
+26
+00:03:29,870 --> 00:03:38,270
+On the left is the Unity Catalog function the tools call. The customer number is supplied by the system, never taken from the conversation.
+
+27
+00:03:38,720 --> 00:03:51,795
+In the middle are the actual records Databricks returned for Daniel, kept as evidence on his case: the shoes, the warehouse scan on the seventh of October, no refund record, and the eligibility check that made a refund applicable.
+
+28
+00:03:52,245 --> 00:04:08,460
+On the right is the resulting case record. To be clear about what is live: the Databricks workspace, warehouse and queries are real; the customers and orders are synthetic test data. Everly only reads from Databricks; its actions are recorded in its own action store.
+
+29
+00:04:10,010 --> 00:04:17,860
+Second: people in the loop, and a follow-up that doesn't forget. Priya Raman, a platinum customer, signs in.
+
+30
+00:04:18,610 --> 00:04:23,240
+She asks about the refund on her two hundred and eighty nine dollar wool overcoat.
+
+31
+00:04:23,990 --> 00:04:33,745
+Echo reads her records. The refund was started on the sixth of October, but it has been stuck in processing ever since, so Echo proposes to retrigger it.
+
+32
+00:04:34,195 --> 00:04:41,680
+That is above the hundred and fifty dollar automatic limit, so Sentinel's policy check returns: a person must approve it.
+
+33
+00:04:42,130 --> 00:04:45,350
+Everly doesn't guess, or over-promise.
+
+34
+00:04:46,100 --> 00:04:55,225
+It tells Priya her refund has been sent to a colleague for review, gives her the reference, and makes no promise about when, or whether, it will be approved.
+
+35
+00:04:55,975 --> 00:05:01,970
+The case shows the decision: approval required. The request now waits in the review queue.
+
+36
+00:05:02,720 --> 00:05:10,720
+This is where Guardian comes in. A typical chatbot forgets an issue once the chat closes. Guardian keeps following it.
+
+37
+00:05:11,470 --> 00:05:17,165
+In the Inbox is the follow-up Guardian has opened. Let's simulate what happens next.
+
+38
+00:05:17,915 --> 00:05:26,185
+A colleague approves the refund. The action is carried out, and Priya is told it has been approved and started, with the same reference.
+
+39
+00:05:26,935 --> 00:05:37,725
+Then the refund completes. Guardian checks the records again, sends Priya a short update, and closes the issue, but only once a second read of the data confirms the outcome.
+
+40
+00:05:38,175 --> 00:05:44,225
+Its updates use fixed wording filled from the records, and respect quiet hours and message limits.
+
+41
+00:05:45,775 --> 00:05:57,130
+Third: Aura, the personal stylist. Everly isn't only there when something goes wrong. Customers who opt in to Personal Stylist Mode have Aura. We sign in as Angelica.
+
+42
+00:05:57,880 --> 00:06:03,510
+In the Launches tab, ACME's merchandiser launches a new product: a cashmere scarf.
+
+43
+00:06:04,260 --> 00:06:10,390
+Aura scores the launch against the wardrobe, sizes and preferences of every customer who opted in.
+
+44
+00:06:10,840 --> 00:06:19,180
+The scoring is code, not the model. Only a score of eighty or more, with something the customer already owns to name, earns an invite.
+
+45
+00:06:19,930 --> 00:06:27,390
+Of the fifteen customers who opted in, four are invited, nine scored below eighty, and two had turned this category down.
+
+46
+00:06:28,140 --> 00:06:41,675
+Angelica owns a navy wool overcoat, so the scarf is a strong match. Her Stylist tab shows the pick and every reason for it: the overcoat, her style, her colours, her usual price range, and the season.
+
+47
+00:06:42,425 --> 00:06:45,645
+She asks Everly about the scarf she was sent.
+
+48
+00:06:46,395 --> 00:06:56,335
+Orbit brings in Aura, who reads the invite that was actually sent, so the answer can only describe that product, its real price, and the reasons that were recorded.
+
+49
+00:06:57,085 --> 00:07:05,855
+Aura explains it: what it is, what it costs, and why it suits her, without pushing her to buy, or claiming anything is reserved for her.
+
+50
+00:07:06,605 --> 00:07:09,290
+And when she replies that it's not for her,
+
+51
+00:07:10,040 --> 00:07:18,275
+Aura records that feedback in code, so similar pieces will be picked less often, and Angelica can switch Stylist Mode off at any time.
+
+52
+00:07:19,025 --> 00:07:24,615
+Invites share the same message limits as service updates, and service always comes first.
+
+53
+00:07:26,165 --> 00:07:34,570
+Fourth: Pulse, the product advisor, who suggests products from what a customer actually bought. Isabella Nguyen signs in.
+
+54
+00:07:35,320 --> 00:07:37,970
+She asks what goes with her chinos.
+
+55
+00:07:38,720 --> 00:07:49,760
+Pulse calls ACME's recommendation engine. The suggestions are chosen by code, from her real orders and the catalog. The model only explains them, and never invents a product.
+
+56
+00:07:50,510 --> 00:08:02,730
+She returned her chinos because they were the wrong size, so the first suggestion is the same chinos in another size, then a belt and an oxford shirt that go with them. Every card comes from ACME's catalog data.
+
+57
+00:08:04,280 --> 00:08:12,685
+Fifth: an external AI assistant asks Everly. More and more customers have their own AI assistants, and Everly is ready for them.
+
+58
+00:08:13,435 --> 00:08:23,515
+On the left is Benjamin's assistant, here a scripted MCP client. It connects to Everly's assistant gateway with an access token Benjamin granted it, read-only.
+
+59
+00:08:23,965 --> 00:08:31,775
+Its first call, get order status, answers instantly from the records: his shoes are with FedEx, still in transit.
+
+60
+00:08:32,525 --> 00:08:46,550
+Then the assistant calls ask support, passing only Benjamin's question. There is no customer field. The gateway validates the token, looks up its grant, and gives Neuro SAN Benjamin's customer number in the private session data.
+
+61
+00:08:47,000 --> 00:08:57,625
+The request goes through Orbit and Anchor to Swift, the orders and delivery specialist, who finds the parcel hasn't moved from Memphis in six days, and proposes a carrier trace.
+
+62
+00:08:58,075 --> 00:09:03,680
+But Sentinel's policy check sees the assistant channel, which is read-only, and denies it.
+
+63
+00:09:04,430 --> 00:09:12,425
+The assistant polls get answer, and receives a structured result: the request number, its status, the reply and the case.
+
+64
+00:09:12,875 --> 00:09:19,220
+Everly explains the stall, and tells Benjamin he can open the trace himself in ACME's own app or website.
+
+65
+00:09:19,970 --> 00:09:29,415
+Back in the console, the assistant's request appears on the map as its own lane: Orbit, Anchor, Swift and Sentinel, answered, and marked read-only.
+
+66
+00:09:29,865 --> 00:09:39,530
+Even if the model had submitted the trace anyway, the action layer re-checks the same policy before anything runs, and refuses it. Nothing was executed.
+
+67
+00:09:40,280 --> 00:09:42,645
+Here is the evidence from that run.
+
+68
+00:09:43,095 --> 00:09:50,615
+The gateway's tools take no customer number at all. Identity comes only from the validated access token and its grant.
+
+69
+00:09:51,065 --> 00:10:02,925
+The trace shows each step inside Everly, from identity, through Swift's findings, to Sentinel's denial and the action layer's refusal. The decision log records the reason: confirm in channel.
+
+70
+00:10:03,375 --> 00:10:10,730
+And the assistant receives its answer as structured data, with the case reference, so it can follow up on the same case later.
+
+71
+00:10:11,480 --> 00:10:23,315
+What we have demonstrated is more than a chatbot. Everly brings together specialist agents, customer data, business rules and external integrations, through Cognizant's Neuro SAN framework.
+
+72
+00:10:23,765 --> 00:10:34,180
+This modular approach helps developers build and extend agentic applications, while keeping business decisions in testable code, and sensitive actions under controlled execution.
+
+73
+00:10:34,930 --> 00:10:43,485
+Customers get a more connected service experience, while the retailer retains oversight, traceability and control. Thank you.
+

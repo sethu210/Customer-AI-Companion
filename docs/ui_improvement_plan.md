@@ -41,7 +41,7 @@ front end and redoing it on every upgrade, and its screens are built for develop
  pick customer + channel ──POST /api/session──▶ looks up the channel identity
                                                 (adapter: mock or Databricks)
                                                 keeps sly_data SERVER-SIDE
- type message ───────────WS /api/session/{id}/chat──▶ POST streaming_chat ─────────▶ support_multi_agent
+ type message ───────────WS /api/session/{id}/chat──▶ POST streaming_chat ─────────▶ customer-ai-companion
                                                        sly_data + chat_context        (MAXIMAL filter: every
  ◀── events: agent→agent, tool call/result, ◀───────── normalises each streamed ◀──── agent message)
      case updates, final answer, cost                  message; reads case store
@@ -53,7 +53,7 @@ front end and redoing it on every upgrade, and its screens are built for develop
 |---|---|
 | `GET /api/customers?query=&kind=scenario\|all&page=` | Customers from the active backend (`customers` + `channel_identities`; read-only, the adapters already have this data). The 23 scenario customers are pinned on top with their title, outcome class and suggested questions from `evaluation/expectations.py`. Paged, so the 500 background customers work too. |
 | `POST /api/session {customer_id, channel}` | **Simulated sign-in.** Picks that customer's identity row for the channel and builds the gateway sly_data `{"channel": ..., "identifier": ...}`, exactly what `evaluation.runner.gateway_sly_data` sends today. Option `"not_signed_in"` sends `{"channel": "web_session"}` only. Returns a session id; **the browser never sends or edits sly_data.** |
-| `WS /api/session/{id}/chat` | Sends each customer message to `http://localhost:8080/api/v1/customer_service/support_multi_agent/streaming_chat` with the session's sly_data, the `chat_context` from the previous turn, and `chat_filter: MAXIMAL`. Streams back normalised events (below). Keeps the returned `case_id` (the only thing `allow.to_upstream` returns) for the next turn. |
+| `WS /api/session/{id}/chat` | Sends each customer message to `http://localhost:8080/api/v1/customer_service/customer-ai-companion/streaming_chat` with the session's sly_data, the `chat_context` from the previous turn, and `chat_filter: MAXIMAL`. Streams back normalised events (below). Keeps the returned `case_id` (the only thing `allow.to_upstream` returns) for the next turn. |
 | `GET /api/case/{case_id}` | Case, issues, findings, proposals, policy decisions, actions and hand-offs from the case and action stores (`CaseStore().case_view`, `ActionStore`). |
 | `POST /api/session/{id}/reset` | New conversation (new chat context) for the same customer. |
 | `GET /api/replays`, `GET /api/replays/{label}/{id}` | Optional: plays back a recorded run from `runtime/eval/<label>/multi_streams/<id>.jsonl` (see §5). |

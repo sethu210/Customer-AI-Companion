@@ -9,6 +9,12 @@ agents for orders, returns, payments, loyalty, products, styling and policy, all
 up and whom to invite are decided by deterministic, tested code. The language model plans the work and writes the
 conversation; it can never pick the customer, raise an amount or claim something was done when it wasn't.
 
+**Demo video (10:44):** [`demo/everly-demo10-v2-20261024-234928.mp4`](demo/everly-demo10-v2-20261024-234928.mp4)
+(subtitles: [`.srt`](demo/everly-demo10-v2-20261024-234928.srt)). A refund fixed end to end, a high-value refund
+approved by a person and followed by the Resolution Guardian, a Personal Stylist launch, product suggestions, and a
+customer's own AI assistant asking Everly over MCP. Recorded on 2026-10-24, before the agent network file was
+renamed: the build card still shows its old name, `support_multi_agent.hocon`.
+
 ## Highlights
 
 - **Zero-question support.** The customer is identified by the channel they use, so Everly never asks for anything
@@ -235,7 +241,7 @@ breaks; the product is Everly.
 
 | Path | What it is |
 |---|---|
-| `registries/customer_service/` | Agent networks: `support_multi_agent` (front agent + specialists), its lean variant, the original single agent |
+| `registries/customer_service/` | Agent networks: `customer-ai-companion` (front agent + specialists), its lean variant, the original single agent |
 | `coded_tools/customer_service/` | The agents' tools: identity, case store, policy engine, action layer, reply guard, recommendations, data adapters |
 | `coded_tools/customer_service/companion*.py` | Everly's companion: record, consents, profile from the data, thread, memory (stated and confirmed preferences), the notes for the front agent |
 | `coded_tools/customer_service/stylist.py`, `messaging.py`, `stylist/` | Personal Stylist Mode: launch scoring and invites, and the message limits shared with the Guardian; command line `python -m stylist` |

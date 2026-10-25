@@ -32,4 +32,4 @@ def test_lean_network_differs_only_by_the_policy_agent():
 
 
 def test_lean_network_is_served():
-    assert "customer_service/support_multi_agent_lean.hocon" in (ROOT / "registries" / "manifest.hocon").read_text()
+    assert "customer_service/customer-ai-companion-lean.hocon" in (ROOT / "registries" / "manifest.hocon").read_text()

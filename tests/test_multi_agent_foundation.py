@@ -1,6 +1,6 @@
 """
 Multi-agent Phase 2 tests (no LLM): identity resolution in code, the SQLite case store, and every coded tool
-of the support_multi_agent network, driven in the order the agents would call them.
+of the customer-ai-companion network, driven in the order the agents would call them.
 """
 
 import asyncio
@@ -39,7 +39,7 @@ from coded_tools.customer_service.specialist_tools import RecordFindings
 from coded_tools.customer_service.specialist_tools import StuckCases
 
 ROOT = Path(__file__).parents[1]
-NETWORK = ROOT / "registries" / "customer_service" / "support_multi_agent.hocon"
+NETWORK = ROOT / "registries" / "customer_service" / "customer-ai-companion.hocon"
 S18_PHONE = "+1-299-555-0150"
 
 

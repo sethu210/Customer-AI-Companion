@@ -43,8 +43,8 @@ from evaluation.expectations import Conversation
 from evaluation.expectations import conversations
 
 NETWORKS = {
-    "multi": ("customer_service/support_multi_agent", "support_orchestrator"),
-    "lean": ("customer_service/support_multi_agent_lean", "support_orchestrator"),
+    "multi": ("customer_service/customer-ai-companion", "support_orchestrator"),
+    "lean": ("customer_service/customer-ai-companion-lean", "support_orchestrator"),
     "single": ("customer_service/zero_question_support", "customer_service"),
 }
 STORE_FILES = ("decisions.jsonl", "actions.jsonl", "cases.jsonl", "executed.jsonl")

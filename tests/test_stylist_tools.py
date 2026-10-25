@@ -134,7 +134,7 @@ def test_naming_a_pick_that_was_sent_is_not_an_invented_product():
 def test_the_network_has_the_stylist_agent_and_routes_to_it():
     from pyhocon import ConfigFactory
 
-    for path in (NETWORK, NETWORK.with_name("support_multi_agent_lean.hocon")):
+    for path in (NETWORK, NETWORK.with_name("customer-ai-companion-lean.hocon")):
         tools = {t["name"]: t for t in ConfigFactory.parse_file(str(path))["tools"]}
         # release_picks, launch_new_in: Orbit's system requests only; hidden from the model on customer turns
         # (test_orbit_tick)

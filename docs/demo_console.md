@@ -5,7 +5,7 @@ store) gives its customers. The header reads "Everly from **ACME** Retail": Ever
 with a spark) on the indigo accent, and the retailer's first word as a capitalised wordmark. Until 2026-10-22 the
 store was called UrbanLeaf Retail, with a leaf logo and green colours. Brand, tagline and retailer are set in
 `demo/demo.yaml`. A friendly front end for the multi-agent support network
-(`support_multi_agent`), built for demos. It has:
+(`customer-ai-companion`), built for demos. It has:
 - a **simulated website sign-in** that replaces importing sly_data;
 - the **customer chat**;
 - a live **"Behind the scenes"** view of the Neuro SAN communication: the agent map, a timeline of agent messages and

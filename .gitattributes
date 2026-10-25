@@ -1,0 +1,3 @@
+# Keep line endings exactly as stored on every machine, whatever core.autocrlf says: the lean network
+# generator and its test compare files byte for byte.
+* text=auto eol=lf

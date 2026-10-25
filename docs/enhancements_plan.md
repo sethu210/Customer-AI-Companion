@@ -41,7 +41,7 @@ the free model's 1–4 min per call on 2026-10-20.
 **Goal:** the orchestrator routes and writes the reply; specialists do the work.
 
 **E1a: `product_advisor` specialist (≈ 1 day)**
-- New agent in `registries/customer_service/support_multi_agent.hocon`; `get_recommendations` moves from the
+- New agent in `registries/customer_service/customer-ai-companion.hocon`; `get_recommendations` moves from the
   orchestrator's tools to it; the orchestrator routes `shopping` issues to it like any other domain.
 - Guarantees stay in code, unchanged (`recommendation_tools.py`): shopping issues only, the customer's other
   requests first, eligibility (identified, strong/medium sign-in, no case with a person, no risk flags), no SKUs to
@@ -63,7 +63,7 @@ the free model's 1–4 min per call on 2026-10-20.
 ### E1 results (2026-10-20)
 
 **E1a delivered:**
-- `product_advisor` agent in `support_multi_agent.hocon`: calls `get_recommendations` once and returns its result
+- `product_advisor` agent in `customer-ai-companion.hocon`: calls `get_recommendations` once and returns its result
   unchanged (or the tool's error, e.g. "other requests come first"); the orchestrator routes `shopping` issues to it
   and no longer has `get_recommendations` itself. The code guarantees in `recommendation_tools.py` are unchanged.
 - **Bug fixed on the way:** the `add_issues` schema the model sees still listed the domains without `shopping`

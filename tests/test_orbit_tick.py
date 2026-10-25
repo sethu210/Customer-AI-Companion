@@ -32,7 +32,7 @@ from test_multi_agent_foundation import isolated  # noqa: F401 - autouse fixture
 from test_multi_agent_foundation import mock  # noqa: F401
 
 ROOT = Path(__file__).resolve().parents[1]
-NETWORK = ROOT / "registries" / "customer_service" / "support_multi_agent.hocon"
+NETWORK = ROOT / "registries" / "customer_service" / "customer-ai-companion.hocon"
 TOKEN = "test-token"
 
 

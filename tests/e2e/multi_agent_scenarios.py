@@ -1,5 +1,5 @@
 r"""
-Conversation tests for the support_multi_agent network (needs the server running and an LLM quota).
+Conversation tests for the customer-ai-companion network (needs the server running and an LLM quota).
 
 The gateway is simulated the way the multi-agent design expects: sly_data carries the raw channel identity
 (channel + identifier, looked up from the local test data), and the case_id returned in sly_data after each
@@ -26,7 +26,7 @@ from coded_tools.customer_service.case_store import CaseStore  # noqa: E402
 from coded_tools.customer_service.mock_adapter import MockAdapter  # noqa: E402
 from evaluation.expectations import conversations  # noqa: E402
 
-URL = "http://localhost:8080/api/v1/customer_service/support_multi_agent/streaming_chat"
+URL = "http://localhost:8080/api/v1/customer_service/customer-ai-companion/streaming_chat"
 FRONT = "support_orchestrator"
 IDENTITIES = MockAdapter.from_env().identities
 

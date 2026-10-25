@@ -194,7 +194,7 @@ def test_notes_are_appended_to_the_instructions_and_a_failure_never_breaks_the_t
 
 
 def test_both_networks_give_the_front_agent_the_notes_middleware():
-    for name in ("support_multi_agent.hocon", "support_multi_agent_lean.hocon"):
+    for name in ("customer-ai-companion.hocon", "customer-ai-companion-lean.hocon"):
         conf = ConfigFactory.parse_file(str(NETWORKS / name))
         front = next(t for t in conf["tools"] if t["name"] == "support_orchestrator")
         assert [m["class"] for m in front["middleware"]] == [  # Orbit's clock first (a tick needs no notes)
