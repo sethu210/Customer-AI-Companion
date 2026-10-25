@@ -44,9 +44,6 @@ def run(coro):
 def test_every_scenario_and_script_has_an_expectation():
     assert sorted(CONVS) == sorted([f"S{n:02d}" for n in range(1, 21)] + ["M1", "M2", "M3"] +
                                    [f"R{n}" for n in range(1, 8)] + ["D1", "P1", "P2", "N1"])
-    # the single-agent network has no recommendations, companion memory or stylist: R1-R7, P1-P2, N1 are multi-only
-    multi_only = {f"R{n}" for n in range(1, 8)} | {"P1", "P2", "N1"}
-    assert sorted(c.id for c in conversations("single")) == sorted(set(CONVS) - multi_only)
     for c in CONVS.values():
         assert c.messages and c.cls in {"info", "action", "deny", "escalate", "identity"}
         if c.cls == ACTION:
@@ -71,10 +68,6 @@ def test_allowed_actions_match_the_policy(mock, tmp_path, cid):
 def test_gateway_contracts(mock):
     identities = mock.identities
     assert set(runner.gateway_sly_data("multi", CONVS["S01"], identities)) == {"channel", "identifier"}
-    assert runner.gateway_sly_data("single", CONVS["S01"], identities) == {
-        "customer_id": "CUST-S01", "channel": "web_session", "auth_level": "strong"}
-    # The shared phone resolves to no single customer, so the single-agent gateway sends no customer_id.
-    assert runner.gateway_sly_data("single", CONVS["S18"], identities) == {"channel": "phone"}
 
 
 def test_parse_stream_reads_answer_tools_errors_and_accounting():
@@ -101,9 +94,13 @@ def test_parse_stream_reads_answer_tools_errors_and_accounting():
 
 # ---------------------------------------------------------------------------- scorer on synthetic records
 
-def record(cid, answer="Here is what I found.", actions=(), executed=(), cases=(), case=None, error=None):
-    return {"id": cid, "turns": [{"q": "q", "a": answer, "seconds": 10, "tool_errors": [],
-                                  "accounting": {"successful_requests": 5, "total_tokens": 1000, "total_cost": 0.0}}],
+RESOLVED_CASE = {"case_id": "CASE-T", "summary": {"outcome": "resolved"}, "issues": [], "handoffs": []}
+
+
+def record(cid, answer="Here is what I found.", actions=(), executed=(), cases=(), case=RESOLVED_CASE, error=None):
+    return {"id": cid, "network": "multi",
+            "turns": [{"q": "q", "a": answer, "seconds": 10, "tool_errors": [],
+                       "accounting": {"successful_requests": 5, "total_tokens": 1000, "total_cost": 0.0}}],
             "store": {"actions": list(actions), "executed": list(executed), "cases": list(cases)},
             "case": case, "error": error}
 
@@ -166,7 +163,7 @@ def test_escalation_judgement():
 def test_multi_agent_case_must_be_closed():
     open_case = {**record("S02", case={"handoffs": [], "summary": {"outcome": "open"}}), "network": "multi"}
     assert not score_conversation(CONVS["S02"], open_case)["resolved"]
-    no_case = {**record("S02"), "network": "multi"}  # the agents never opened a case
+    no_case = {**record("S02", case=None), "network": "multi"}  # the agents never opened a case
     assert not score_conversation(CONVS["S02"], no_case)["resolved"]
     closed = {**record("S02", case={"handoffs": [], "summary": {"outcome": "resolved"}}), "network": "lean"}
     assert score_conversation(CONVS["S02"], closed)["resolved"]
@@ -213,7 +210,7 @@ def test_aggregate_and_report():
     failed_identity = score_conversation(CONVS["S18"], record("S18", error="URLError"))
     assert failed_identity["identity_safe"] is False
     assert metrics["avg_llm_calls"] == 5 and metrics["targets_met"]["unsafe_actions"] is True
-    text = report("multi", metrics, rows, ("single", metrics))
+    text = report("multi", metrics, rows, ("lean", metrics))
     assert "| fcr | 0.50 ❌ | 0.50 | 0.80 |" in text and "| S13 | escalate |" in text
 
 

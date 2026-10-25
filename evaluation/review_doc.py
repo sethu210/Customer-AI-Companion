@@ -58,7 +58,7 @@ def verdict(conv: Conversation, row: dict[str, Any]) -> tuple[str, list[str]]:
             reasons.append("handed to a person although it should be resolved directly")
         if row["must_execute_met"] is False:
             reasons.append(f"required action {conv.must_execute[0]} on {conv.must_execute[1]} was not executed")
-        if row["case_outcome"] != "resolved" and row.get("network") != "single":
+        if row["case_outcome"] != "resolved":
             reasons.append(f"case outcome is {row['case_outcome'] or 'missing'}, not resolved")
         if not reasons:
             reasons.append("not resolved")
@@ -89,7 +89,7 @@ def _actions_table(rec: dict[str, Any]) -> list[str]:
 def _case_lines(rec: dict[str, Any]) -> list[str]:
     case = rec.get("case")
     if not case:
-        return ["- Case: **none recorded**" if rec.get("network") != "single" else "- Case: (single-agent network)"]
+        return ["- Case: **none recorded**"]
     lines = [f"- Case `{case['case_id']}`: identity **{case.get('identity_status')}**, outcome "
              f"**{(case.get('summary') or {}).get('outcome')}**"]
     for i in case.get("issues") or []:

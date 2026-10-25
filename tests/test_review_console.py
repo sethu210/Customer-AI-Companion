@@ -11,7 +11,6 @@ from fastapi.testclient import TestClient
 
 from coded_tools.customer_service.action_service import request_action
 from coded_tools.customer_service.action_store import ActionStore
-from coded_tools.customer_service.action_tools import EscalateToHuman
 from coded_tools.customer_service.case_store import CaseError
 from coded_tools.customer_service.case_store import CaseStore
 from coded_tools.customer_service.mock_adapter import MockAdapter
@@ -158,15 +157,6 @@ def test_handoff_is_resolved_not_approved(mock, svc):
     assert svc.item(rid)["status"] == "resolved" and issue(sly, iid)["status"] == "handed_off"
     with pytest.raises(ReviewError, match="already resolved"):
         svc.resolve(rid, reviewer="Sam", note="again")
-
-
-def test_single_agent_customer_requests_are_in_the_queue_too(mock, svc):
-    result = run(EscalateToHuman().async_invoke({"reason": "customer_requested", "summary": "Wants a call"},
-                                                {"customer_id": "CUST-S01"}))
-    item = svc.item(result["case_id"])
-    assert item["type"] == "customer_request"
-    svc.resolve(result["case_id"], reviewer="Sam", note="Called back")
-    assert result["case_id"] not in [i["review_id"] for i in svc.queue()]
 
 
 def test_queued_issue_can_only_be_closed_by_review(mock):

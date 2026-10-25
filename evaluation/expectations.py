@@ -17,7 +17,6 @@ Fields
     recommend_first   (product_id, reason) the first suggestion must be
     recommend_refusal the engine's refusal code expected on the case (not_available, sign_in_too_weak, ...)
     never_recommend   product ids that must never be suggested
-    multi_only        the conversation needs a multi-agent feature (recommendations); skipped for single
 """
 
 from dataclasses import dataclass
@@ -54,7 +53,6 @@ class Conversation:
     recommend_first: tuple[str, str] | None = None
     recommend_refusal: str | None = None
     never_recommend: list[str] = field(default_factory=list)
-    multi_only: bool = False
     # Companion memory (P3): the customer's remembered preferences after the conversation, as (kind, value); None =
     # not checked, but then nothing may have been remembered for them. must_forget: the last case shows a deletion.
     remembers: list[tuple[str, str]] | None = None
@@ -114,26 +112,26 @@ EXTRA = [
 # first. Excluded situations must show the engine's refusal code on the case, not just a quiet model.
 RECOMMENDATIONS = [
     Conversation("R1", "what goes with my chinos", "CUST-S11", "web_session", ["What goes with my chinos?"], INFO,
-                 recommend=True, recommend_first=("PRD-SCP", "replacement_other_size"), multi_only=True),
+                 recommend=True, recommend_first=("PRD-SCP", "replacement_other_size")),
     Conversation("R2", "refund question + suggestion", "CUST-S03", "web_session",
                  ["Did my refund go through? Also, what would go well with my oxford shirt?"], INFO, facts=["55"],
-                 recommend=True, recommend_first=("PRD-OS", "replacement_other_size"), multi_only=True),
+                 recommend=True, recommend_first=("PRD-OS", "replacement_other_size")),
     Conversation("R3", "risk flags: no suggestions", "CUST-S15", "web_session",
                  ["Can you suggest something like my jacket?"], INFO,
-                 recommend=False, recommend_refusal="not_available", multi_only=True),
+                 recommend=False, recommend_refusal="not_available"),
     Conversation("R4", "weak phone sign-in: no suggestions", "CUST-S10", "phone",
                  ["Can you recommend something to go with my running shoes?"], INFO,
-                 recommend=False, recommend_refusal="sign_in_too_weak", multi_only=True),
+                 recommend=False, recommend_refusal="sign_in_too_weak"),
     Conversation("R5", "never the belt returned as not as described", "CUST-S12", "web_session",
                  ["Can you recommend something to go with a belt?"], INFO,
-                 recommend=True, never_recommend=["PRD-LB"], multi_only=True),
+                 recommend=True, never_recommend=["PRD-LB"]),
     Conversation("R6", "wrong-size puffer: other sizes first", "CUST-S01", "web_session",
                  ["Do you have anything like my puffer jacket?"], INFO,
-                 recommend=True, recommend_first=("PRD-CPJ", "replacement_other_size"), multi_only=True),
+                 recommend=True, recommend_first=("PRD-CPJ", "replacement_other_size")),
     Conversation("R7", "refund with a person: no suggestions", "CUST-S13", "web_session",
                  ["Where is my refund for the wool coat? Also, what would go with my wool coat?"], ESCALATE,
                  allowed_actions=[("retrigger_refund", "ITM-S13-1-1")], recommend=False,
-                 recommend_refusal="case_with_a_person", multi_only=True),
+                 recommend_refusal="case_with_a_person"),
 ]
 
 
@@ -149,10 +147,10 @@ DEMO = [
 MEMORY = [
     Conversation("P1", "remember a liked colour, then suggestions", "CUST-S11", "web_session",
                  ["Please remember that I like navy.", "Yes, please.", "What goes with my chinos?"], INFO,
-                 remembers=[("likes", "navy")], recommend=True, multi_only=True),
+                 remembers=[("likes", "navy")], recommend=True),
     Conversation("P2", "remember, then forget", "CUST-S02", "web_session",
                  ["Remember that I avoid wool.", "Yes.", "Actually, please forget that I avoid wool."], INFO,
-                 remembers=[], must_forget=True, multi_only=True),
+                 remembers=[], must_forget=True),
 ]
 
 
@@ -162,14 +160,13 @@ STYLIST = [
     Conversation("N1", "asks about a stylist pick, then 'not for me'", "CUST-B0196", "web_session",
                  ["Tell me about the scarf you sent me.", "Thanks, but it's not for me."], INFO,
                  facts=["Cashmere Scarf", "87.99"], must_not_say=["basket", "reserved for you", "I've ordered"],
-                 stylist_launch=["PRD-CSC"], must_feedback="not_for_me", multi_only=True),
+                 stylist_launch=["PRD-CSC"], must_feedback="not_for_me"),
 ]
 
 
-def conversations(network: str | None = None) -> list[Conversation]:
-    """Every evaluation conversation; for the single-agent network, those needing multi-agent features are left out."""
-    every = _scenario_conversations() + EXTRA + RECOMMENDATIONS + DEMO + MEMORY + STYLIST
-    return [c for c in every if not (network == "single" and c.multi_only)]
+def conversations() -> list[Conversation]:
+    """Every evaluation conversation."""
+    return _scenario_conversations() + EXTRA + RECOMMENDATIONS + DEMO + MEMORY + STYLIST
 
 
 def _scenario_conversations() -> list[Conversation]:

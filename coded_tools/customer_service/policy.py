@@ -80,7 +80,7 @@ def load_policy(path: Path = POLICY_FILE) -> dict[str, Any]:
 
 
 # Recommendation vocabulary of the multi-agent design. decide() keeps its own four decisions (used by the
-# single-agent network and the action layer); recommendation() translates them for the Policy agent.
+# action layer); recommendation() translates them for the Policy agent.
 REC_ALLOW = "ALLOW"
 REC_DENY = "DENY"
 REC_MORE_INFO = "NEEDS_MORE_INFORMATION"

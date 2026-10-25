@@ -241,7 +241,7 @@ breaks; the product is Everly.
 
 | Path | What it is |
 |---|---|
-| `registries/customer_service/` | Agent networks: `customer-ai-companion` (front agent + specialists), its lean variant, the original single agent |
+| `registries/customer_service/` | Agent networks: `customer-ai-companion` (front agent + specialists), its lean variant (no policy agent, generated from it) |
 | `coded_tools/customer_service/` | The agents' tools: identity, case store, policy engine, action layer, reply guard, recommendations, data adapters |
 | `coded_tools/customer_service/companion*.py` | Everly's companion: record, consents, profile from the data, thread, memory (stated and confirmed preferences), the notes for the front agent |
 | `coded_tools/customer_service/stylist.py`, `messaging.py`, `stylist/` | Personal Stylist Mode: launch scoring and invites, and the message limits shared with the Guardian; command line `python -m stylist` |

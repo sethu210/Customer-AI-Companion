@@ -127,9 +127,3 @@ async def request_action(adapter: CustomerDataAdapter, store: ActionStore, polic
         result["message_hint"] = "Done. Tell the customer what was done, the amount if any, and the reference."
     return result
 
-
-async def escalate(store: ActionStore, *, customer_id: str, reason: str, summary: str) -> dict[str, Any]:
-    case_id = store.open_case(customer_id, f"customer_request:{reason}", summary[:2000])
-    return {"outcome": "escalated", "case_id": case_id,
-            "message_hint": "Tell the customer a person will follow up and give them the case id. "
-                            "Do not promise a time or an outcome."}

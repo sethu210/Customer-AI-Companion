@@ -139,7 +139,7 @@ def main() -> int:
     from evaluation.agent_server import AgentServer
 
     wanted = [i.strip() for i in args.ids.split(",") if i.strip()]
-    convs = [c for c in conversations("multi") if c.id in wanted and c.channel == "web_session"]
+    convs = [c for c in conversations() if c.id in wanted and c.channel == "web_session"]
     customer_ids = {c.customer for c in conversations()}
     policy = load_policy()
     rows = []

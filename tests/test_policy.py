@@ -9,7 +9,6 @@ import yaml
 
 from coded_tools.customer_service import action_service
 from coded_tools.customer_service.action_store import ActionStore
-from coded_tools.customer_service.action_tools import RequestAction
 from coded_tools.customer_service.mock_adapter import MockAdapter
 from coded_tools.customer_service.policy import load_policy
 
@@ -131,16 +130,3 @@ def test_every_decision_is_audited(mock, store):
     assert [(r["decision"], r["outcome"]) for r in lines] == [("DENY", "denied"),
                                                               ("NEEDS_APPROVAL", "queued_for_approval")]
     assert lines[1]["facts"]["amount"] == 289.0 and lines[1]["facts"]["policy_version"]
-
-
-def test_tool_ignores_amount_and_customer_id_from_model(mock, tmp_path, monkeypatch):
-    import coded_tools.customer_service.data_adapter as data_adapter
-
-    monkeypatch.setattr(data_adapter, "_ADAPTER", mock)
-    monkeypatch.setenv("ACTION_STORE_DIR", str(tmp_path))
-    monkeypatch.setenv("ACTION_MODE", "live")
-    args = {"action": "retrigger_refund", "target_id": "ITM-S12-1-1", "amount": 9999, "customer_id": "CUST-S13"}
-    sly = {"customer_id": "CUST-S12", "channel": "email", "auth_level": "medium"}
-    result = run(RequestAction().async_invoke(args, sly))
-    assert result["outcome"] == "executed" and result["amount"] == 36.0
-    assert run(RequestAction().async_invoke(args, {})).startswith("Error: identity_unavailable")

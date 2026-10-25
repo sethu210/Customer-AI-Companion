@@ -16,7 +16,7 @@
   .\scripts\ui_eval.ps1 -Network multi -Label ui-dry -Scripted -Backend mock -Ids S01,S09,M1   # no LLM used
 #>
 param(
-    [Parameter(Mandatory = $true)][ValidateSet('multi', 'lean', 'single')][string]$Network,
+    [Parameter(Mandatory = $true)][ValidateSet('multi', 'lean')][string]$Network,
     [Parameter(Mandatory = $true)][ValidatePattern('^[A-Za-z0-9_.-]+$')][string]$Label,
     [string[]]$Ids = @(),
     [switch]$Scripted,

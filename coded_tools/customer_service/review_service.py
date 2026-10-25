@@ -5,8 +5,8 @@ people make on it.
 Queue items
     action review   an action the policy queued for a person (approval above the automatic limit, specialist
                     review, billing review, or shadow mode). Approve = execute it now; reject = decline it.
-    hand-off        an issue handed over by the multi-agent network (case store), or a customer request from
-                    the single-agent network (escalate_to_human). Resolve = a person dealt with it.
+    hand-off        an issue handed over by the multi-agent network (case store). Resolve = a person dealt
+                    with it.
 
 Approving never trusts the queued snapshot: the action is re-checked against fresh data. A person's approval
 replaces the approval limit and the specialist review (that is what they are for), but not the rules of the

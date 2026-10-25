@@ -17,8 +17,7 @@ the mock system of record (shadow mode would hand every allowed action to a pers
 Then, with the same three variables set in this shell:
 
     .\.venv\Scripts\python.exe -m evaluation.runner --network multi --label <label>
-    .\.venv\Scripts\python.exe -m evaluation.runner --network single --label <label>   (restart with new dirs first)
-    .\.venv\Scripts\python.exe -m evaluation.score runtime/eval/<label>/multi.jsonl --compare runtime/eval/<label>/single.jsonl
+    .\.venv\Scripts\python.exe -m evaluation.score runtime/eval/<label>/multi.jsonl --compare runtime/eval/<label>/lean.jsonl
 """
 
 import argparse
@@ -45,7 +44,6 @@ from evaluation.expectations import conversations
 NETWORKS = {
     "multi": ("customer_service/customer-ai-companion", "support_orchestrator"),
     "lean": ("customer_service/customer-ai-companion-lean", "support_orchestrator"),
-    "single": ("customer_service/zero_question_support", "customer_service"),
 }
 STORE_FILES = ("decisions.jsonl", "actions.jsonl", "cases.jsonl", "executed.jsonl")
 ERROR_MARKERS = ("customer_data_unavailable", "action_unavailable", "case_unavailable", "policy_unavailable",
@@ -53,15 +51,9 @@ ERROR_MARKERS = ("customer_data_unavailable", "action_unavailable", "case_unavai
 
 
 def gateway_sly_data(network: str, conv: Conversation, identities: list[dict]) -> dict[str, Any]:
-    """What each network's gateway sends: raw channel identity (multi) or a resolved customer (single)."""
+    """What the gateway sends: the raw channel identity; the network resolves it in code."""
     rows = [i for i in identities if i["customer_id"] == conv.customer and i["channel"] == conv.channel]
-    if network in ("multi", "lean"):
-        return {"channel": conv.channel, "identifier": rows[0]["identifier"]}
-    matches = {i["customer_id"] for i in identities
-               if i["channel"] == conv.channel and i["identifier"] == rows[0]["identifier"]}
-    if len(matches) != 1 or not rows[0]["verified"]:
-        return {"channel": conv.channel}  # the single-agent gateway contract: no customer_id when unresolved
-    return {"customer_id": conv.customer, "channel": conv.channel, "auth_level": rows[0]["auth_level"]}
+    return {"channel": conv.channel, "identifier": rows[0]["identifier"]}
 
 
 def post_turn(url: str, front: str, sly: dict, text: str, chat_context: dict | None,
@@ -233,7 +225,7 @@ def main() -> None:
     parser.add_argument("--allow-dirty", action="store_true")
     args = parser.parse_args()
 
-    convs = [c for c in conversations(args.network) if not args.ids or c.id in args.ids]
+    convs = [c for c in conversations() if not args.ids or c.id in args.ids]
     store = ActionStore()
     preflight(store, convs, args.allow_dirty)
     out_dir = ROOT / "runtime" / "eval" / args.label

@@ -246,17 +246,11 @@ def score_conversation(conv: Conversation, rec: dict[str, Any]) -> dict[str, Any
         a["outcome"] in HUMAN_OUTCOMES for a in actions) or any(
         i.get("status") == "queued_for_review" for i in case.get("issues") or [])
     case_outcome = (case.get("summary") or {}).get("outcome")
-    if rec.get("network", "single") == "single":
-        issues_closed = True  # the single-agent network has no case store
-    else:
-        issues_closed = case_outcome == "resolved"  # multi-agent: no case at all is a failure, not a pass
+    issues_closed = case_outcome == "resolved"  # no case at all is a failure, not a pass
     failed = bool(rec.get("error")) or not turns or any(not (t.get("a") or "").strip() for t in turns)
     claimed_not_done = claims_done(text) and not executed and not verified_issues
-    # Multi-agent only: the single-agent network has no case store and no recommendations.
     picks_sent = {i["product_id"] for i in (rec.get("stylist") or {}).get("invites") or [] if i.get("status") == "sent"}
-    shopping = score_recommendations(conv, text, case, picks_sent) if rec.get("network", "single") != "single" else {
-        "offered": [], "invalid_suggestions": [], "invented_products": [], "recs_ok": None, "rec_problems": [],
-        "unsupported_amounts": []}
+    shopping = score_recommendations(conv, text, case, picks_sent)
     memory = score_memory(conv, rec, case)
     picks = score_stylist(conv, rec)
 
@@ -412,7 +406,7 @@ def report(name: str, metrics: dict, rows: list[dict], other: tuple[str, dict] |
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("results", type=Path)
-    parser.add_argument("--compare", type=Path, help="a second results file, e.g. the single-agent baseline")
+    parser.add_argument("--compare", type=Path, help="a second results file, e.g. the lean network")
     args = parser.parse_args()
     metrics, rows = score_file(args.results)
     other = None

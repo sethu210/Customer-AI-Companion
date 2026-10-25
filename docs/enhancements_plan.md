@@ -361,7 +361,7 @@ paid model from the $10 credit (only `config/llm_config.hocon` changes).
 | F-1 | `README.md` is empty | ✅ 2026-10-22 (Everly README, P0) |
 | F-2 | `registries/generated/unhcr_back_office_agent_network.hocon` (designer test from day 1) — delete if unwanted | 🟡 user |
 | F-3 | `databricks_adapter.py` uses the deprecated `streamablehttp_client` (2 uses) → `streamable_http_client` | ⏳ |
-| F-4 | Single-agent network still has Neuro SAN's default `max_execution_seconds=300` (multi-agent has 900) | ⏳ |
+| F-4 | Single-agent network still has Neuro SAN's default `max_execution_seconds=300` (multi-agent has 900) | ✅ network retired (2026-10-25) |
 | F-5 | Plan page artifact still shows day-1 progress | ⏳ |
 | F-6 | Agentforce comparison in the key-features doc is unverified against current Agentforce docs (comment left on the doc) | 🟡 user |
 | F-7 | Optional: create a dedicated `customer_service` catalog in the Databricks UI (data lives in `workspace`) | ⏳ |

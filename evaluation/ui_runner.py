@@ -185,7 +185,7 @@ async def run_conversation(network: str, conv: Conversation, ui_url: str, identi
 
 
 async def main_async(args: argparse.Namespace) -> None:
-    convs = [c for c in conversations(args.network) if not args.ids or c.id in args.ids]
+    convs = [c for c in conversations() if not args.ids or c.id in args.ids]
     store = ActionStore()
     preflight(store, convs, args.allow_dirty)
     out_dir = ROOT / "runtime" / "eval" / args.label

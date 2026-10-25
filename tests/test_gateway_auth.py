@@ -11,8 +11,6 @@ import time
 import pytest
 
 from coded_tools.customer_service import gateway_auth
-from coded_tools.customer_service.identity import IdentityError
-from coded_tools.customer_service.identity import authenticated_customer_id
 from coded_tools.customer_service.identity import ensure_identity
 from coded_tools.customer_service.mock_adapter import MockAdapter
 from coded_tools.customer_service.policy import load_policy
@@ -107,13 +105,6 @@ def test_resolved_identity_is_reused_in_the_request_and_a_forged_seal_is_not(moc
     forged = {"channel": "web_session", "customer_id": "CUST-S08", "auth_level": "strong",
               "identity_status": "verified", "identity_seal": sly["identity_seal"]}
     assert status(forged, adapter) == "missing"
-
-
-def test_single_agent_tools_need_a_signed_customer_too():
-    with pytest.raises(IdentityError):
-        authenticated_customer_id({"customer_id": "CUST-S08", "channel": "web_session", "auth_level": "strong"})
-    signed = gateway_auth.sign({"customer_id": "CUST-S08", "channel": "web_session", "auth_level": "strong"})
-    assert authenticated_customer_id(signed) == "CUST-S08"
 
 
 def test_system_requests_carry_no_identity_token():

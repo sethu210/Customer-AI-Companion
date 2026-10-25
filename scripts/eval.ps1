@@ -24,7 +24,7 @@
   stream is always saved to runtime\eval\<Label>\<Network>_streams\<id>.jsonl.
 #>
 param(
-    [Parameter(Mandatory = $true)][ValidateSet('multi', 'lean', 'single')][string]$Network,
+    [Parameter(Mandatory = $true)][ValidateSet('multi', 'lean')][string]$Network,
     [Parameter(Mandatory = $true)][ValidatePattern('^[A-Za-z0-9_.-]+$')][string]$Label,
     [string[]]$Ids = @(),
     [string]$Faults = '',
@@ -43,9 +43,6 @@ $ns = Join-Path $root '.venv\Scripts\ns.exe'
 $runDir = Join-Path $root "runtime\eval\$Label\$Network"
 New-Item -ItemType Directory -Force -Path $runDir | Out-Null
 
-if ($Scripted -and $Network -eq 'single') {
-    throw 'The scripted test model only plays the multi-agent networks (multi, lean).'
-}
 $listening = Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue
 if ($listening) {
     throw "Port $Port is already in use (a server is running?). Stop it first: this run needs its own settings."
@@ -110,7 +107,7 @@ finally {
 
 $results = Join-Path $root "runtime\eval\$Label\$Network.jsonl"
 $scoreArgs = @('-m', 'evaluation.score', $results)
-$other = @('single', 'multi', 'lean') | Where-Object { $_ -ne $Network } |
+$other = @('multi', 'lean') | Where-Object { $_ -ne $Network } |
     ForEach-Object { Join-Path $root "runtime\eval\$Label\$_.jsonl" } | Where-Object { Test-Path $_ } | Select-Object -First 1
 if ($other) { $scoreArgs += '--compare'; $scoreArgs += $other }
 & $python @scoreArgs

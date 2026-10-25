@@ -19,26 +19,6 @@ CUSTOMER_ID = "customer_id"
 CHANNEL = "channel"
 AUTH_LEVEL = "auth_level"
 
-IDENTITY_UNAVAILABLE = (
-    "Error: identity_unavailable. The customer could not be identified by the channel, so no account data can be "
-    "shown. Do not ask for name, email, order number or other identifying details; ask the customer to log in or "
-    "use the verification link sent to them."
-)
-
-
-class IdentityError(Exception):
-    """Raised when sly_data carries no authenticated customer."""
-
-
-def authenticated_customer_id(sly_data: dict[str, Any] | None) -> str:
-    if sly_data is not None:
-        gateway_auth.apply(sly_data)  # only a gateway-signed customer_id counts (gateway_auth.py)
-    customer_id = (sly_data or {}).get(CUSTOMER_ID)
-    if not isinstance(customer_id, str) or not customer_id.strip():
-        raise IdentityError(IDENTITY_UNAVAILABLE)
-    return customer_id.strip()
-
-
 # ---------------------------------------------------------------------------- multi-agent identity resolution
 #
 # The multi-agent gateway may send the raw channel identity instead of a customer id:
