@@ -197,6 +197,37 @@ consent and sign-in:
 - **Synthetic data** (`test_data/`). A seeded generator: 500+ customers with orders, shipments, returns, refunds and
   payments, plus the product catalog. Same seed, same data.
 
+## Why Neuro SAN
+
+Everly is built on [Neuro SAN](https://github.com/cognizant-ai-lab/neuro-san), Cognizant's open-source framework for
+multi-agent networks. Adopting it meant the project's effort went into the customer experience and the safety rules,
+not into agent plumbing.
+
+- **A whole agent team defined as configuration.** All ten agents, their instructions, their tools and who calls
+  whom live in one HOCON file. Adding an agent or trying a different team is a config edit: the lean variant without
+  the policy agent is generated from the main network by a short script, so the two designs were compared side by
+  side with no code changes.
+- **Agent-to-agent orchestration out of the box.** Orbit calls its specialists exactly as it calls a tool. Neuro SAN
+  hands the work down, collects the answers and streams every step, so there is no orchestration loop to write.
+- **Private data the model never sees.** `sly_data` carries the customer's signed identity and the case id alongside
+  the conversation but never into a prompt, and the network file controls what flows back to the caller. This is the
+  foundation of Everly's rule that identity is decided in code.
+- **Code takes over wherever it should.** Coded tools and middleware hooks let deterministic code act at any point:
+  the tools apply the business rules, and on Orbit's clock the Guardian and the Stylist run through the agent network
+  with no model call. "Code decides, the model talks" fits inside the framework instead of around it.
+- **Serving from day one.** `ns run` serves every network over a streaming HTTP API. The demo console's live agent
+  map, the evaluation runners and the assistant gateway are all built on it, with no server code for the agents.
+- **Any model, or none.** Changing the model provider is one setting (a free OpenRouter model today). The same
+  setting plugs in a scripted test model, so the whole multi-agent network runs in tests and evaluations with no LLM
+  calls and no cost.
+- **Tooling included.** The nsflow UI for chatting with and inspecting networks, Phoenix tracing that shows Everly's
+  business events in the same trace as the model calls, serving several networks at once, and the agent network
+  designer.
+
+**A clean split.** With Neuro SAN running the agents, Everly's own rules stay in plain Python. Only 12 of the
+project's 123 Python files import Neuro SAN, mostly as thin `CodedTool` wrappers. The safety logic is unit-tested
+without a model, and the agent team can keep changing without touching it.
+
 ## What is in the repo
 
 Folder and module names come from the project's start (`neurosan`, `customer_service`). They are kept so nothing
